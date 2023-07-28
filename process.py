@@ -4,13 +4,50 @@ import pytesseract
 from pytesseract import Output
 
 
-def process_image(image):
+def process_image(image, conf_threshold=10):
     results = pytesseract.image_to_data(
         image,
         output_type=Output.DICT,
     )
+    res = []
+    for i in range(len(results["text"])):
+        conf = int(results["conf"][i])
+        if conf < conf_threshold:
+            continue
+        x = results["left"][i]
+        y = results["top"][i]
 
-    return results
+        w = results["width"][i]
+        h = results["height"][i]
+
+        text = results["text"][i]
+        entry = {
+            "x": x,
+            "y": y,
+            "w": w,
+            "h": h,
+            "text": text,
+            "conf": conf,
+        }
+        res.append(entry)
+
+    return res
+
+
+def draw_results(res, image):
+    for entry in res:
+        x = entry["x"]
+        y = entry["y"]
+        w = entry["w"]
+        h = entry["h"]
+        text = entry["text"]
+        conf = entry["conf"]
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(
+            image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 200), 2
+        )
+
+    return image
 
 
 # imagesPaths = glob("screenshots/*.png")
