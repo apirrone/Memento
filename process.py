@@ -3,13 +3,13 @@ from glob import glob
 import pytesseract
 from pytesseract import Output
 
-
-imagesPaths = glob("screenshots/*.jpg")
+imagesPaths = glob("screenshots/*.png")
 images = []
 for imagePath in imagesPaths:
     images.append(cv2.imread(imagePath))
 
-for image in images:
+for k, image in enumerate(images):
+    image = cv2.resize(image, (0, 0), fx=3, fy=3)
     results = pytesseract.image_to_data(image, output_type=Output.DICT)
 
     for i in range(0, len(results["text"])):
@@ -28,5 +28,5 @@ for image in images:
             cv2.putText(
                 image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 200), 2
             )
-    cv2.imshow("Image", image)
-    cv2.waitKey(0)
+    cv2.imwrite("processed/" + str(k) + ".png", image)
+    print("processed " + str(k))
