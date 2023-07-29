@@ -1,6 +1,8 @@
 screenshots/*
 processed/*
 __pycache__/*
-pmr/*
+pmr_db/*
 *.png
 *.json
+pmr/__pycache__/*
+pmr.egg-info/*

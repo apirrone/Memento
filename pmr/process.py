@@ -1,7 +1,7 @@
 import cv2
 import pytesseract
 from pytesseract import Output
-import utils
+import pmr.utils as utils
 
 
 # TODO : split the box by x_tol too
