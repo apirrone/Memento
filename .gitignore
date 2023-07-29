@@ -3,3 +3,4 @@ processed/*
 __pycache__/*
 pmr/*
 *.png
+*.json
