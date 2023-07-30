@@ -1,9 +1,12 @@
+
+from pmr.background import Background
 import pmr.background
 import pmr.query_db
 
 
 def bg():
-    pmr.background.background()
+    backgound = Background()
+    backgound.run()
 
 
 def query():
