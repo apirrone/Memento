@@ -2,8 +2,8 @@ import chromadb
 import json
 from pmr.process import draw_results
 import cv2
-from pmr.utils import Reader
 import os
+import pmr.utils as utils
 
 
 class Query:
@@ -13,7 +13,7 @@ class Query:
             path=os.path.join(self.cache_path, "pmr_db")
         )
         self.collection = self.client.get_collection(name="pmr_db")
-        self.reader = Reader(os.path.join(self.cache_path, "0.mp4"))
+        self.readers_cache = utils.ReadersCache(self.cache_path)
 
     def query_db(self, input):
         results = self.collection.query(query_texts=[input], n_results=2)
@@ -26,11 +26,18 @@ class Query:
             for i, s in enumerate(doc):
                 col.add(documents=[json.dumps(s)], ids=[str(i)])
 
+            print("ID : " + str(id))
+            reader = self.readers_cache.get_reader(int(id))
+
             n_results = 5
             res = col.query(query_texts=[input], n_results=n_results)
             n_results = len(res["ids"][0])
             for i in range(n_results):
                 r = json.loads(res["documents"][0][i])
-                frame = self.reader.get_frame(int(id))
+                frame = reader.get_frame(int(id))
+                if frame is None:
+                    print("Frame not found")
+                    print(res)
+                    continue
                 im = draw_results([r], frame)
                 cv2.imwrite("query_" + str(i) + ".png", im)

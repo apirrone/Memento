@@ -85,10 +85,10 @@ def draw_results(res, image):
         y = entry["y"]
         w = entry["w"]
         h = entry["h"]
-        # text = entry["text"]
+        text = entry["text"]
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        # cv2.putText(
-        #     image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 200), 2
-        # )
+        cv2.putText(
+            image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 200), 2
+        )
 
     return image

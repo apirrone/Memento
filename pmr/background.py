@@ -4,7 +4,7 @@ import cv2
 import chromadb
 import json
 import datetime
-from pmr.process import process_image
+from pmr.process import process_image, draw_results
 import pmr.utils as utils
 import asyncio
 import os
@@ -22,7 +22,6 @@ class Background:
         self.collection = self.client.get_or_create_collection(name="pmr_db")
         self.sct = mss.mss()
         self.metadata = {}
-        self.seconds_per_rec = 30
         self.nb_rec = 0
         self.rec = utils.Recorder(
             os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
@@ -31,6 +30,7 @@ class Background:
 
         self.running = True
         self.i = 0
+        self.done_processing = 0
 
         self.images_queue = queue.Queue()
         threading.Thread(target=self.process_images, daemon=True).start()
@@ -53,6 +53,10 @@ class Background:
                 ],
                 ids=[str(self.i)],
             )
+            # cv2.imwrite(
+            #     "/tmp/" + str(self.done_processing) + ".png", draw_results(results, im)
+            # )
+            self.done_processing += 1
             self.images_queue.task_done()
 
     def run(self):
@@ -80,9 +84,10 @@ class Background:
             self.images_queue.put(
                 {"im": im, "window_title": window_title, "t": t, "i": self.i}
             )
+            print("Frames processed in queue :", str(self.done_processing)+"/"+str(self.i))
 
             self.i += 1
-            if (self.i % (utils.FPS * self.seconds_per_rec)) == 0:
+            if (self.i % (utils.FPS * utils.SECONDS_PER_REC)) == 0:
                 print("CLOSE")
                 self.rec.stop()
                 self.nb_rec += 1

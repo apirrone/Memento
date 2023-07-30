@@ -3,8 +3,10 @@ import av
 import fractions
 import time
 import asyncio
+import os
 
-FPS = 5
+FPS = 1
+SECONDS_PER_REC = 30
 AUDIO_PTIME = 0.020  # 20ms audio packetization
 VIDEO_CLOCK_RATE = 90000
 VIDEO_PTIME = 1 / FPS
@@ -88,15 +90,40 @@ class Recorder:
 
 
 class Reader:
-    def __init__(self, filename):
+    def __init__(self, filename, offset=0):
         self.container = av.open(filename)
         self.stream = self.container.streams.video[0]
         self.frames = []
         for i, frame in enumerate(self.container.decode(self.stream)):
             self.frames.append(frame)
+        self.offset = offset
+        print(filename, self.offset)
 
+    # TODO there is a bug here, the found frame does not correspond to the ocr data
     def get_frame(self, frame_i):
-        if frame_i < len(self.frames):
-            return self.frames[frame_i].to_ndarray(format="bgr24")
+        if (frame_i - self.offset) < len(self.frames):
+            return self.frames[frame_i - self.offset].to_ndarray(format="bgr24")
         else:
             return None
+
+
+class ReadersCache:
+    def __init__(self, cache_path):
+        self.readers = {}
+        self.cache_path = cache_path
+
+    def select_video(self, frame_id):
+        return frame_id // (FPS * SECONDS_PER_REC)
+
+    def get_reader(self, frame_id):
+        video_id = self.select_video(frame_id)
+        offset = video_id * (FPS * SECONDS_PER_REC)
+        if video_id not in self.readers:  # Caching reader
+            self.readers[video_id] = Reader(
+                os.path.join(self.cache_path, str(video_id) + ".mp4"), offset=offset
+            )
+        return self.readers[video_id]
+
+    # Shorthand
+    def get_frame(self, frame_id):
+        return self.get_reader(frame_id).get_frame(frame_id)
