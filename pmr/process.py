@@ -3,56 +3,55 @@ import pytesseract
 from pytesseract import Output
 import pmr.utils as utils
 
+# TODO replace tolerances in pixels by tolerances in percentage of the image size
 
-# TODO : split the box by x_tol too
-def merge_boxes(res):
+
+def merge_boxes(res, x_tol=50, y_tol=20):
     lines_indices = {}
     for i, entry in enumerate(res):
         y = entry["y"]
 
-        line = utils.line_exists(y, lines_indices, y_tol=20)
+        line = utils.line_exists(y, lines_indices, y_tol=y_tol)
         if line is None:
             lines_indices[y] = []
             lines_indices[y].append(i)
         else:
             lines_indices[line].append(i)
 
-    lines = {}
     new_res = []
-    for line_index, line in lines_indices.items():
-        min_x = 1000000000
-        max_x = 0
-        min_y = 1000000000
-        max_h = 0
-        lines[line_index] = ""
+
+    for line in lines_indices.values():
+        sentences = []
+        first_word = True
         for word in line:
             x = res[word]["x"]
+            y = res[word]["y"]
             w = res[word]["w"]
-            if x < min_x:
-                min_x = x
-            if x + w > max_x:
-                max_x = x + w
-            if res[word]["y"] < min_y:
-                min_y = res[word]["y"]
-            if res[word]["h"] > max_h:
-                max_h = res[word]["h"]
-            lines[line_index] += res[word]["text"] + " "
-
-        entry = {
-            "x": min_x,
-            "y": min_y,
-            "w": max_x - min_x,
-            "h": max_h,
-            "text": lines[line_index],
-        }
-        new_res.append(entry)
-
+            h = res[word]["h"]
+            text = res[word]["text"]
+            if not first_word and utils.same_sentence(sentences[-1], x, x_tol=x_tol):
+                sentences[-1]["w"] = x + w - sentences[-1]["x"]
+                sentences[-1]["text"] += " " + text
+                if sentences[-1]["h"] < h:
+                    sentences[-1]["h"] = h
+            else:
+                entry = {
+                    "x": x,
+                    "y": y,
+                    "w": w,
+                    "h": h,
+                    "text": text,
+                }
+                sentences.append(entry)
+                first_word = False
+        for sentence in sentences:
+            new_res.append(sentence)
     return new_res
 
 
-def process_image(image, conf_threshold=80):
+def process_image(image, conf_threshold=10):
     results = pytesseract.image_to_data(
-        image,
+        image,  # Maybe resize the image here for better detection ?
         output_type=Output.DICT,
     )
     res = []
