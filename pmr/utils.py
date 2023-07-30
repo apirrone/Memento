@@ -82,3 +82,18 @@ class Recorder:
         packet = self.stream.encode(None)
         self.output.mux(packet)
         self.output.close()
+
+
+class Reader:
+    def __init__(self, filename):
+        self.container = av.open(filename)
+        self.stream = self.container.streams.video[0]
+        self.frames = []
+        for i, frame in enumerate(self.container.decode(self.stream)):
+            self.frames.append(frame)
+
+    def get_frame(self, frame_i):
+        if frame_i < len(self.frames):
+            return self.frames[frame_i].to_ndarray(format="bgr24")
+        else:
+            return None

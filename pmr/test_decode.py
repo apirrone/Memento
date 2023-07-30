@@ -1,12 +1,8 @@
-import av
+from utils import Reader
 import cv2
 
-container = av.open("test.mp4")
-stream = container.streams.video[0]
-i = 0
-for frame in container.decode(stream):
-    i += 1
-    print(frame.pts, frame.time_base)
-    cvframe = frame.to_ndarray(format="bgr24")
-    print(cvframe.shape)
-    cv2.imwrite(str(i) + ".png", cvframe)
+reader = Reader("test.mp4")
+
+cv2.imshow("aze", reader.get_frame(20))
+
+cv2.waitKey(0)

@@ -18,7 +18,6 @@ setup(
         "pytesseract==0.3.10",
         "xlib==0.21",
         "av==10.0.0"
-
     ],
     entry_points={
         "console_scripts": [

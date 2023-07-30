@@ -18,7 +18,6 @@ while True:
     im = im[:, :, :-1]
     im = cv2.resize(im, RESOLUTION)
     asyncio.run(recorder.new_im(im))
-
-    if time.time() - s > 5:
+    if time.time() - s > 60:
         break
 recorder.stop()
