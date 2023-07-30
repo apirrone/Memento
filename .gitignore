@@ -7,3 +7,4 @@ pmr_db/*
 pmr/__pycache__/*
 pmr.egg-info/*
 *.h264
+*.mp4
