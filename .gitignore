@@ -6,3 +6,4 @@ pmr_db/*
 *.json
 pmr/__pycache__/*
 pmr.egg-info/*
+*.h264
