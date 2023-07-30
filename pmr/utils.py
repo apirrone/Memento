@@ -22,11 +22,11 @@ def get_active_window():
             window = window.query_tree().parent
             wmclass = window.get_wm_class()
         if wmclass is None:
-            return None
+            return "None"
         winclass = wmclass[1]
         return winclass
     else:
-        return None
+        return "None"
 
 
 # check that a y coordinate is within a line with a tolerance of y_tol

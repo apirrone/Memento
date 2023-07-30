@@ -1,4 +1,3 @@
-
 from pmr.background import Background
 import pmr.background
 import pmr.query_db
@@ -10,4 +9,6 @@ def bg():
 
 
 def query():
-    pmr.query_db.query_db()
+    q = pmr.query_db.Query()
+    i = input("query : ")
+    q.query_db(i)

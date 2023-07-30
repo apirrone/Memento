@@ -7,8 +7,9 @@ import datetime
 from pmr.process import process_image
 import pmr.utils as utils
 import asyncio
-from multiprocessing import Pool
 import os
+import queue
+import threading
 
 
 class Background:
@@ -21,7 +22,7 @@ class Background:
         self.collection = self.client.get_or_create_collection(name="pmr_db")
         self.sct = mss.mss()
         self.metadata = {}
-        self.seconds_per_rec = 5
+        self.seconds_per_rec = 30
         self.nb_rec = 0
         self.rec = utils.Recorder(
             os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
@@ -31,19 +32,28 @@ class Background:
         self.running = True
         self.i = 0
 
-    def process(self, im, window_title, t):
-        # Process image and add it to metadata.json
-        results = process_image(im)
-        self.collection.add(
-            documents=[json.dumps(results)],
-            metadatas=[
-                {
-                    "source": window_title,
-                    "time": t,
-                }
-            ],
-            ids=[str(self.i)],
-        )
+        self.images_queue = queue.Queue()
+        threading.Thread(target=self.process_images, daemon=True).start()
+
+    def process_images(self):
+        # Infinite worker
+        while True:
+            data = self.images_queue.get()
+            im = data["im"]
+            window_title = data["window_title"]
+            t = data["t"]
+            results = process_image(im)
+            self.collection.add(
+                documents=[json.dumps(results)],
+                metadatas=[
+                    {
+                        "source": window_title,
+                        "time": t,
+                    }
+                ],
+                ids=[str(self.i)],
+            )
+            self.images_queue.task_done()
 
     def run(self):
         print("Running in background ...")
@@ -67,13 +77,13 @@ class Background:
                 self.metadata, open(os.path.join(self.cache_path, "metadata.json"), "w")
             )
 
-            pool = Pool(processes=1)
-            pool.apply_async(self.process, [im, window_title, t])
+            self.images_queue.put(
+                {"im": im, "window_title": window_title, "t": t, "i": self.i}
+            )
 
             self.i += 1
             if (self.i % (utils.FPS * self.seconds_per_rec)) == 0:
-                pool.close()
-                pool.join()
+                print("CLOSE")
                 self.rec.stop()
                 self.nb_rec += 1
                 self.rec = utils.Recorder(
