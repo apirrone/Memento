@@ -8,16 +8,24 @@ from pmr.process import process_image
 import pmr.utils as utils
 import asyncio
 from multiprocessing import Pool
+import os
+
 
 class Background:
     def __init__(self):
-        self.client = chromadb.PersistentClient(path="pmr_db")
+        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
+        os.makedirs(self.cache_path, exist_ok=True)
+        self.client = chromadb.PersistentClient(
+            path=os.path.join(self.cache_path, "pmr_db")
+        )
         self.collection = self.client.get_or_create_collection(name="pmr_db")
         self.sct = mss.mss()
         self.metadata = {}
-        self.seconds_per_rec = 60
+        self.seconds_per_rec = 5
         self.nb_rec = 0
-        self.rec = utils.Recorder(str(self.nb_rec)+".mp4")
+        self.rec = utils.Recorder(
+            os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
+        )
         self.rec.start()
 
         self.running = True
@@ -38,6 +46,7 @@ class Background:
         )
 
     def run(self):
+        print("Running in background ...")
         while self.running:
             window_title = utils.get_active_window()
 
@@ -54,7 +63,9 @@ class Background:
                 "time": t,
                 "index": self.i,
             }
-            json.dump(self.metadata, open("metadata.json", "w"))
+            json.dump(
+                self.metadata, open(os.path.join(self.cache_path, "metadata.json"), "w")
+            )
 
             pool = Pool(processes=1)
             pool.apply_async(self.process, [im, window_title, t])
@@ -65,5 +76,6 @@ class Background:
                 pool.join()
                 self.rec.stop()
                 self.nb_rec += 1
-                self.rec = utils.Recorder(str(self.nb_rec)+".mp4")
-        self.rec.stop()
+                self.rec = utils.Recorder(
+                    os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
+                )
