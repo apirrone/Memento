@@ -162,6 +162,7 @@ class SearchBar:
         self.active = False
         self.input = ""
         self.found = False
+        self.input_changed = False
 
     def activate(self):
         self.active = True
@@ -216,23 +217,31 @@ class SearchBar:
     def event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.mod & pygame.KMOD_CTRL and event.key == pygame.K_f:
-                if self.active and not self.found and len(self.input) > 0:
+                if self.active and self.input_changed and len(self.input) > 0:
+                    self.start_query()
+                elif self.active and not self.found and len(self.input) > 0:
                     self.start_query()
                 elif self.active and self.found:
                     return True
                 else:
                     self.activate()
+                self.input_changed = False
             elif event.key == pygame.K_ESCAPE:
                 self.deactivate()
             elif event.key == pygame.K_BACKSPACE:
                 self.input = self.input[:-1]
+                self.input_changed = True
             elif event.key == pygame.K_RETURN:
-                if self.active and not self.found and len(self.input) > 0:
+                if self.input_changed and self.active and len(self.input) > 0:
+                    self.start_query()
+                elif self.active and not self.found and len(self.input) > 0:
                     self.start_query()
                 elif self.active and self.found:
                     return True
+                self.input_changed = False
             else:
                 try:
+                    self.input_changed = True
                     self.input += chr(event.key)
                 except Exception:
                     pass
