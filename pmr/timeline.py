@@ -5,6 +5,7 @@ import pygame
 import cv2
 import pmr.utils as utils
 import numpy as np
+from pmr.query_db import Query
 
 
 # TODO auto scroll the time bar, because when too long the zones become too small and the cursor too
@@ -91,6 +92,66 @@ class TimeBar:
             )
 
 
+class SearchBar:
+    def __init__(self, window_size):
+        self.x = window_size[0] // 10
+        self.y = window_size[1] // 10
+        self.w = window_size[0] - window_size[0] // 5
+        self.h = window_size[1] // 20
+        self.active = False
+        self.input = ""
+
+    def activate(self):
+        self.active = True
+
+    def deactivate(self):
+        self.active = False
+
+    def draw(self, screen):
+        if self.active:
+            pygame.draw.rect(
+                screen,
+                (255, 255, 255),
+                (self.x, self.y, self.w, self.h),
+                border_radius=self.h // 4,
+            )
+
+            font = pygame.font.SysFont("Arial", self.h // 2)
+            text = font.render(self.input, True, (0, 0, 0))
+            screen.blit(text, (self.x + 10, self.y + 10))
+
+            if len(self.input) > 0:
+                cursor_pos = font.size(self.input)[0] + 10
+            else:
+                cursor_pos = 10
+
+            if pygame.time.get_ticks() % 1000 < 500:
+                pygame.draw.rect(
+                    screen,
+                    (0, 0, 0),
+                    (
+                        self.x + cursor_pos,
+                        self.y + 10,
+                        2,
+                        self.h - 20,
+                    ),
+                )
+
+    def inputs(self, event):
+        if event.key == pygame.K_BACKSPACE:
+            self.input = self.input[:-1]
+        elif event.key == pygame.K_RETURN:
+            ret = self.input
+            self.input = ""
+            return ret
+        else:
+            try:
+                self.input += chr(event.key)
+            except Exception:
+                pass
+        return None
+
+
 class Timeline:
     def __init__(self):
         self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
@@ -105,6 +166,7 @@ class Timeline:
         )
         self.current_app = ""
         self.time_bar = TimeBar(self.metadata, self.window_size)
+        self.search_bar = SearchBar(self.window_size)
 
     def update(self):
         self.metadata = json.load(open(os.path.join(self.cache_path, "metadata.json")))
@@ -117,6 +179,7 @@ class Timeline:
 
     def run(self):
         pygame.init()
+        pygame.key.set_repeat(500, 50)
         self.screen = pygame.display.set_mode(self.window_size, pygame.RESIZABLE)
         clock = pygame.time.Clock()
         dt = 0
@@ -126,13 +189,6 @@ class Timeline:
             self.screen.fill((255, 255, 255))
             self.current_app = self.metadata[str(i)]["source"]
 
-            for event in pygame.event.get():
-                if event.type == pygame.MOUSEWHEEL:
-                    i = max(0, min(self.nb_frames - 1, i + event.x - event.y))
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        i = self.time_bar.get_frame_i(event.pos)
-
             im = cv2.resize(self.readers_cache.get_frame(i), self.window_size)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
             surf = pygame.surfarray.make_surface(im)
@@ -140,6 +196,31 @@ class Timeline:
             self.time_bar.draw(
                 self.screen, i, pygame.mouse.get_pos(), self.readers_cache
             )
+            query_input = None
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEWHEEL:
+                    i = max(0, min(self.nb_frames - 1, i + event.x - event.y))
+                    self.search_bar.deactivate()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        i = self.time_bar.get_frame_i(event.pos)
+                        self.search_bar.deactivate()
+
+                if event.type == pygame.KEYDOWN:
+                    if event.mod & pygame.KMOD_CTRL and event.key == pygame.K_f:
+                        self.search_bar.activate()
+                    elif event.key == pygame.K_ESCAPE:
+                        self.search_bar.deactivate()
+                    elif self.search_bar.active:
+                        query_input = self.search_bar.inputs(event)
+
+            self.search_bar.draw(self.screen)
+
+            if query_input is not None:
+                query = Query()
+                results = query.query_db(query_input, self.readers_cache)
+                i = int(results[0]["id"])
+                query_input = None
 
             if t > utils.FPS * utils.SECONDS_PER_REC:
                 print("UPDATE")

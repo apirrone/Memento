@@ -11,8 +11,9 @@ def bg():
 
 def query():
     q = pmr.query_db.Query()
-    i = input("query : ")
-    q.query_db(i)
+    # i = input("query : ")
+    i = "luxonis"
+    print(q.query_db(i))
 
 
 def tl():

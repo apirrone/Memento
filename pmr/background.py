@@ -11,7 +11,14 @@ import os
 import time
 import multiprocessing
 from multiprocessing import Queue
-# import easyocr
+import signal
+
+# # import easyocr
+
+
+# def stop(sig, frame):
+#     print("STOPPING", os.getpid())
+#     exit()
 
 
 class Background:
@@ -36,17 +43,22 @@ class Background:
         self.images_queue = Queue()
         self.nb_workers = 2
         self.workers = []
+        self.pids = []
         for i in range(self.nb_workers):
-            self.workers.append(
-                multiprocessing.Process(target=self.process_images, args=())
-            )
-            self.workers[-1].start()
+            w = multiprocessing.Process(target=self.process_images, args=())
+            self.workers.append(w)
+            self.pids.append(w.pid)
+        for i in range(self.nb_workers):
+            self.workers[i].start()
             print("started worker", i)
 
     def process_images(self):
         # Infinite worker
         # easyocr_reader = easyocr.Reader(["fr", "en"], gpu=True)
         # print("Done initializing easyocr")
+
+        # os.getpid()
+        signal.signal(signal.SIGINT, self.stop_process)
         while True:
             data = self.images_queue.get()
             i = data["i"]
@@ -67,9 +79,20 @@ class Background:
                 ],
                 ids=[str(i)],
             )
+
             # cv2.imwrite(str(i)+".png", process.draw_results(results, im))
 
+    def stop_rec(self, sig, frame):
+        self.rec.stop()
+        print("STOPPING MAIN", os.getpid())
+        exit()
+
+    def stop_process(self, sig, frame):
+        print("STOPPING PROCESS", os.getpid())
+        exit()
+
     def run(self):
+        signal.signal(signal.SIGINT, self.stop_rec)
         print("Running in background ...")
         while self.running:
             window_title = utils.get_active_window()
