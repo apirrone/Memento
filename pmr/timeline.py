@@ -31,7 +31,10 @@ class TimeBar:
             if app not in self.apps_colors:
                 self.apps_colors[app] = tuple(np.random.randint(0, 255, size=3))
 
-    def draw(self, screen, pos):
+    def get_frame_i(self, mouse_pos):
+        return int((mouse_pos[0] - self.x) / self.w * self.nb_frames)
+
+    def draw(self, screen, cursor_pos, mouse_pos, readers_cache):
         for i in range(self.nb_frames):
             app = self.metadata[str(i)]["source"]
             pygame.draw.rect(
@@ -50,13 +53,36 @@ class TimeBar:
             screen,
             (0, 0, 0),
             (
-                self.x + (pos / self.nb_frames) * self.w,
+                self.x + (cursor_pos / self.nb_frames) * self.w,
                 self.y,
                 self.w / self.nb_frames,
                 self.h,
             ),
             5,
         )
+
+        if utils.in_rect((self.x, self.y, self.w, self.h), mouse_pos):
+            pygame.draw.rect(
+                screen,
+                (255, 0, 0),
+                (
+                    mouse_pos[0] - self.w / self.nb_frames / 2,
+                    self.y,
+                    self.w / self.nb_frames,
+                    self.h,
+                ),
+                5,
+            )
+            frame = readers_cache.get_frame(self.get_frame_i(mouse_pos))
+            frame = cv2.resize(frame, (0, 0), fx=0.2, fy=0.2)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
+
+            surf = pygame.surfarray.make_surface(frame)
+            screen.blit(
+                surf,
+                [mouse_pos[0], self.y]
+                - np.array([frame.shape[0] // 2, frame.shape[1]]),
+            )
 
 
 class Timeline:
@@ -97,11 +123,16 @@ class Timeline:
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEWHEEL:
                     i = max(0, min(self.nb_frames - 1, i + event.x - event.y))
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        i = self.time_bar.get_frame_i(event.pos)
             im = cv2.resize(self.readers_cache.get_frame(i), self.window_size)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
             surf = pygame.surfarray.make_surface(im)
             self.screen.blit(surf, (0, 0))
-            self.time_bar.draw(self.screen, i)
+            self.time_bar.draw(
+                self.screen, i, pygame.mouse.get_pos(), self.readers_cache
+            )
 
             if t > utils.FPS * utils.SECONDS_PER_REC:
                 print("UPDATE")

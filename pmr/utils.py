@@ -137,3 +137,8 @@ class ReadersCache:
     # Shorthand
     def get_frame(self, frame_id):
         return self.get_reader(frame_id).get_frame(frame_id)
+
+
+def in_rect(rect, pos):
+    x, y, w, h = rect
+    return x <= pos[0] <= x + w and y <= pos[1] <= y + h
