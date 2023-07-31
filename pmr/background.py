@@ -4,13 +4,14 @@ import cv2
 import chromadb
 import json
 import datetime
-from pmr.process import process_image, draw_results
+import pmr.process as process
 import pmr.utils as utils
 import asyncio
 import os
 import time
 import multiprocessing
 from multiprocessing import Queue
+# import easyocr
 
 
 class Background:
@@ -36,12 +37,16 @@ class Background:
         self.nb_workers = 2
         self.workers = []
         for i in range(self.nb_workers):
-            self.workers.append(multiprocessing.Process(target=self.process_images, args=()))
+            self.workers.append(
+                multiprocessing.Process(target=self.process_images, args=())
+            )
             self.workers[-1].start()
             print("started worker", i)
 
     def process_images(self):
         # Infinite worker
+        # easyocr_reader = easyocr.Reader(["fr", "en"], gpu=True)
+        # print("Done initializing easyocr")
         while True:
             data = self.images_queue.get()
             i = data["i"]
@@ -49,9 +54,9 @@ class Background:
             window_title = data["window_title"]
             t = data["t"]
             start = time.time()
-            results = process_image(im)
+            results = process.process_image(im, ocr="tesseract")
+            # results = process.process_image(im, ocr="easyocr", reader=easyocr_reader)
             print("Processing time :", time.time() - start)
-            start = time.time()
             self.collection.add(
                 documents=[json.dumps(results)],
                 metadatas=[
@@ -62,7 +67,7 @@ class Background:
                 ],
                 ids=[str(i)],
             )
-            print("Adding to db time :", time.time() - start)
+            # cv2.imwrite(str(i)+".png", process.draw_results(results, im))
 
     def run(self):
         print("Running in background ...")

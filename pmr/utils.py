@@ -6,7 +6,7 @@ import asyncio
 import os
 
 FPS = 1
-SECONDS_PER_REC = 30
+SECONDS_PER_REC = 10
 AUDIO_PTIME = 0.020  # 20ms audio packetization
 VIDEO_CLOCK_RATE = 90000
 VIDEO_PTIME = 1 / FPS

@@ -2,10 +2,10 @@ import cv2
 import pytesseract
 from pytesseract import Output
 import pmr.utils as utils
+import numpy as np
+
 
 # TODO replace tolerances in pixels by tolerances in percentage of the image size
-
-
 def merge_boxes(res, x_tol=50, y_tol=20):
     lines_indices = {}
     for i, entry in enumerate(res):
@@ -49,7 +49,37 @@ def merge_boxes(res, x_tol=50, y_tol=20):
     return new_res
 
 
-def process_image(image, conf_threshold=10):
+def process_image_easyocr(image, reader, conf_threshold=0.1, batch_size=4):
+    resize_factor = 2
+    image = cv2.resize(image, (0, 0), fx=1 / resize_factor, fy=1 / resize_factor)
+    # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    results = reader.readtext(image, batch_size=batch_size)
+    res = []
+    for result in results:
+        bb = np.array(result[0])
+        text = result[1]
+        conf = result[2]
+        if conf < conf_threshold:
+            continue
+        print(conf)
+        x = bb[0][0] * resize_factor
+        y = bb[0][1] * resize_factor
+        w = (bb[2][0] - bb[0][0]) * resize_factor
+        h = (bb[2][1] - bb[0][1]) * resize_factor
+        entry = {
+            "x": int(x),
+            "y": int(y),
+            "w": int(w),
+            "h": int(h),
+            "text": text,
+            "conf": conf,
+        }
+        res.append(entry)
+
+    return res
+
+
+def process_image_tesseract(image, conf_threshold=10):
     results = pytesseract.image_to_data(
         image,  # Maybe resize the image here for better detection ?
         output_type=Output.DICT,
@@ -77,6 +107,15 @@ def process_image(image, conf_threshold=10):
         res.append(entry)
 
     return merge_boxes(res)  # make lines
+
+
+def process_image(image, ocr="tesseract", reader=None):
+    if ocr == "tesseract":
+        return process_image_tesseract(image)
+    elif ocr == "easyocr":
+        return process_image_easyocr(image, reader=reader)
+    else:
+        print("Unknown ocr engine")
 
 
 def draw_results(res, image):

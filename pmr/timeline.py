@@ -87,12 +87,9 @@ class Timeline:
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEWHEEL:
                     i = max(0, min(self.nb_frames - 1, i + event.x - event.y))
-
-            surf = pygame.surfarray.make_surface(
-                cv2.cvtColor(
-                    self.readers_cache.get_frame(i), cv2.COLOR_BGR2RGB
-                ).swapaxes(0, 1)
-            )
+            im = cv2.resize(self.readers_cache.get_frame(i), self.window_size)
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
+            surf = pygame.surfarray.make_surface(im)
             self.screen.blit(surf, (0, 0))
             self.time_bar.draw(self.screen, i)
 
