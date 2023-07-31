@@ -15,12 +15,6 @@ import signal
 
 # # import easyocr
 
-
-# def stop(sig, frame):
-#     print("STOPPING", os.getpid())
-#     exit()
-
-
 class Background:
     def __init__(self):
         self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")

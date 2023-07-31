@@ -13,18 +13,19 @@ class Query:
             path=os.path.join(self.cache_path, "pmr_db")
         )
         self.collection = self.client.get_collection(name="pmr_db")
-        # self.readers_cache = utils.ReadersCache(self.cache_path)
+        self.readers_cache = utils.ReadersCache(self.cache_path)
 
-    def query_db(self, input, readers_cache, nb_results=1):
+    def query_db(self, input, nb_results=1):
         results = self.collection.query(query_texts=[input], n_results=nb_results)
         frames_ids = results["ids"][0]
         documents = results["documents"][0]
         final_results = []
-
+        print(results)
         tmp_client = chromadb.Client()
         for i, frame_id in enumerate(frames_ids):
-            frame = readers_cache.get_frame(int(frame_id))
+            frame = self.readers_cache.get_frame(int(frame_id))
             final_results.append({"id": frame_id, "results": []})
+
             doc = json.loads(documents[i])
             col = tmp_client.create_collection(name="tmp_" + str(i))
             for j, s in enumerate(doc):
@@ -41,6 +42,9 @@ class Query:
                     print(res)
                     continue
                 final_results[-1]["results"].append(txt)
+                im = draw_results([txt], frame)
+                print("Writing query_" + str(i * j) + ".png")
+            cv2.imwrite("query_" + str(i * j) + ".png", im)
             tmp_client.delete_collection(name="tmp_" + str(i))
         return final_results
 

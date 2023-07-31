@@ -143,6 +143,7 @@ class SearchBar:
         elif event.key == pygame.K_RETURN:
             ret = self.input
             self.input = ""
+            self.deactivate()
             return ret
         else:
             try:
@@ -218,7 +219,8 @@ class Timeline:
 
             if query_input is not None:
                 query = Query()
-                results = query.query_db(query_input, self.readers_cache)
+                results = query.query_db(query_input)
+                print("QUERY : ", query_input)
                 i = int(results[0]["id"])
                 query_input = None
 
