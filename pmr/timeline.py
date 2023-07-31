@@ -8,7 +8,7 @@ import numpy as np
 
 
 # TODO auto scroll the time bar, because when too long the zones become too small and the cursor too
-# TODO ability to click on the timebar
+# TODO refactor, there is duplicated code here
 class TimeBar:
     def __init__(self, metadata, window_size):
         self.metadata = metadata
@@ -132,6 +132,7 @@ class Timeline:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         i = self.time_bar.get_frame_i(event.pos)
+
             im = cv2.resize(self.readers_cache.get_frame(i), self.window_size)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
             surf = pygame.surfarray.make_surface(im)

@@ -110,7 +110,9 @@ class Reader:
 class ReadersCache:
     def __init__(self, cache_path):
         self.readers = {}
+        self.readers_ids = []  # in order to know the oldest reader
         self.cache_path = cache_path
+        self.cache_size = 50
 
     def select_video(self, frame_id):
         return frame_id // (FPS * SECONDS_PER_REC)
@@ -123,6 +125,7 @@ class ReadersCache:
             self.readers[video_id] = Reader(
                 os.path.join(self.cache_path, str(video_id) + ".mp4"), offset=offset
             )
+            self.readers_ids.append(video_id)
             print(
                 "Caching reader",
                 video_id,
@@ -132,6 +135,11 @@ class ReadersCache:
                 time.time() - start,
                 "seconds",
             )
+            if len(self.readers) > self.cache_size:
+                dumped_id = self.readers_ids[0]
+                self.readers_ids = self.readers_ids[1:]
+                print("Dumping reader with id", dumped_id, "from cache")
+                del self.readers[dumped_id]
         return self.readers[video_id]
 
     # Shorthand
