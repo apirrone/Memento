@@ -20,3 +20,9 @@ $ pmr-bg
 ```console
 $ pmr-query
 ```
+
+### Show timeline : 
+
+```console
+$ pmr-timeline
+```
