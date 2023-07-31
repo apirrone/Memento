@@ -73,7 +73,13 @@ class TimeBar:
                 ),
                 5,
             )
-            frame = readers_cache.get_frame(self.get_frame_i(mouse_pos))
+
+            frame_i = self.get_frame_i(mouse_pos)
+            app = self.metadata[str(frame_i)]["source"]
+            frame = readers_cache.get_frame(frame_i)
+            frame = cv2.putText(
+                frame, app, (10, 200), cv2.FONT_HERSHEY_SIMPLEX, 6, (255, 255, 0), 20
+            )
             frame = cv2.resize(frame, (0, 0), fx=0.2, fy=0.2)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
 
