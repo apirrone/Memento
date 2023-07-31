@@ -7,6 +7,8 @@ import pmr.utils as utils
 import numpy as np
 
 
+# TODO auto scroll the time bar, because when too long the zones become too small and the cursor too
+# TODO ability to click on the timebar
 class TimeBar:
     def __init__(self, metadata, window_size):
         self.metadata = metadata
@@ -30,7 +32,6 @@ class TimeBar:
                 self.apps_colors[app] = tuple(np.random.randint(0, 255, size=3))
 
     def draw(self, screen, pos):
-        pygame.draw.rect(screen, (0, 0, 0), (self.x, self.y, self.w, self.h), 2)
         for i in range(self.nb_frames):
             app = self.metadata[str(i)]["source"]
             pygame.draw.rect(
@@ -39,7 +40,7 @@ class TimeBar:
                 (
                     self.x + (i / self.nb_frames) * self.w,
                     self.y,
-                    self.w / self.nb_frames,
+                    self.w / self.nb_frames + 1,
                     self.h,
                 ),
             )
@@ -73,6 +74,15 @@ class Timeline:
         self.current_app = ""
         self.time_bar = TimeBar(self.metadata, self.window_size)
 
+    def update(self):
+        self.metadata = json.load(open(os.path.join(self.cache_path, "metadata.json")))
+        self.nb_frames = (
+            (len(self.metadata.keys()) // (utils.FPS * utils.SECONDS_PER_REC))
+            * utils.FPS
+            * utils.SECONDS_PER_REC
+        )
+        self.time_bar = TimeBar(self.metadata, self.window_size)
+
     def run(self):
         pygame.init()
         self.screen = pygame.display.set_mode(self.window_size, pygame.RESIZABLE)
@@ -92,6 +102,11 @@ class Timeline:
             surf = pygame.surfarray.make_surface(im)
             self.screen.blit(surf, (0, 0))
             self.time_bar.draw(self.screen, i)
+
+            if t > utils.FPS * utils.SECONDS_PER_REC:
+                print("UPDATE")
+                self.update()
+                t = 0
 
             pygame.display.flip()
             dt = clock.tick() / 1000.0

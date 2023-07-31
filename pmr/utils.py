@@ -106,6 +106,7 @@ class Reader:
             return None
 
 
+# TODO remove from cache (smartly)
 class ReadersCache:
     def __init__(self, cache_path):
         self.readers = {}
