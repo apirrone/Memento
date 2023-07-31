@@ -14,8 +14,24 @@ class Query:
         )
         self.collection = self.client.get_collection(name="pmr_db")
         self.readers_cache = utils.ReadersCache(self.cache_path)
+        self.metadata = json.load(open(os.path.join(self.cache_path, "metadata.json")))
 
-    def query_db(self, input, nb_results=1):
+    def query_db(self, input, nb_results=10):
+        results = self.collection.query(query_texts=[input], n_results=nb_results)
+        final_results = {}
+        ids = results["ids"][0]
+        text = results["documents"][0]
+        for i, id in enumerate(ids):
+            frame_id = id.split("-")[0]
+            bb_id = id.split("-")[1]
+            bb = self.metadata[frame_id]["bbs"][int(bb_id)]
+            if frame_id not in final_results:
+                final_results[frame_id] = []
+            final_results[frame_id].append({"bb": bb, "text": text[i]})
+
+        return final_results
+
+    def _query_db(self, input, nb_results=1):
         results = self.collection.query(query_texts=[input], n_results=nb_results)
         frames_ids = results["ids"][0]
         documents = results["documents"][0]
@@ -47,31 +63,3 @@ class Query:
             cv2.imwrite("query_" + str(i * j) + ".png", im)
             tmp_client.delete_collection(name="tmp_" + str(i))
         return final_results
-
-    # def _query_db(self, input):
-    #     results = self.collection.query(query_texts=[input], n_results=5)
-    #     tmp_client = chromadb.Client()
-    #     for i, id in enumerate(results["ids"][0]):
-    #         doc = results["documents"][0][i]
-    #         doc = json.loads(doc)
-
-    #         col = tmp_client.create_collection(name="tmp_" + str(i))
-    #         for i, s in enumerate(doc):
-    #             col.add(documents=[json.dumps(s)], ids=[str(i)])
-
-    #         print("ID : " + str(id))
-    #         reader = self.readers_cache.get_reader(int(id))
-
-    #         n_results = 5
-    #         res = col.query(query_texts=[input], n_results=n_results)
-    #         n_results = len(res["ids"][0])
-    #         for j in range(n_results):
-    #             r = json.loads(res["documents"][0][j])
-    #             frame = reader.get_frame(int(id))
-    #             if frame is None:
-    #                 print("Frame not found")
-    #                 print(res)
-    #                 continue
-    #             im = draw_results([r], frame)
-    #             print("Writing query_" + str(i * j) + ".png")
-    #             cv2.imwrite("query_" + str(i * j) + ".png", im)

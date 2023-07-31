@@ -28,7 +28,7 @@ class TimeBar:
 
     def build(self):
         for i in range(self.nb_frames):
-            app = self.metadata[str(i)]["source"]
+            app = self.metadata[str(i)]["window_title"]
             if app not in self.apps_colors:
                 self.apps_colors[app] = tuple(np.random.randint(0, 255, size=3))
 
@@ -37,7 +37,7 @@ class TimeBar:
 
     def draw(self, screen, cursor_pos, mouse_pos, readers_cache):
         for i in range(self.nb_frames):
-            app = self.metadata[str(i)]["source"]
+            app = self.metadata[str(i)]["window_title"]
             pygame.draw.rect(
                 screen,
                 self.apps_colors[app],
@@ -76,7 +76,7 @@ class TimeBar:
             )
 
             frame_i = self.get_frame_i(mouse_pos)
-            app = self.metadata[str(frame_i)]["source"]
+            app = self.metadata[str(frame_i)]["window_title"]
             frame = readers_cache.get_frame(frame_i)
             frame = cv2.putText(
                 frame, app, (10, 200), cv2.FONT_HERSHEY_SIMPLEX, 6, (255, 255, 0), 20
@@ -168,6 +168,7 @@ class Timeline:
         self.current_app = ""
         self.time_bar = TimeBar(self.metadata, self.window_size)
         self.search_bar = SearchBar(self.window_size)
+        self.current_bbs = []
 
     def update(self):
         self.metadata = json.load(open(os.path.join(self.cache_path, "metadata.json")))
@@ -188,9 +189,22 @@ class Timeline:
         t = 0
         while self.running:
             self.screen.fill((255, 255, 255))
-            self.current_app = self.metadata[str(i)]["source"]
+            self.current_app = self.metadata[str(i)]["window_title"]
+            im = self.readers_cache.get_frame(i)
+            for bb in self.current_bbs:
+                x = bb["x"]//2
+                y = bb["y"]//2
+                w = bb["w"]//2
+                h = bb["h"]//2
+                im = cv2.rectangle(
+                    im,
+                    (x, y),
+                    (x + w, y + h),
+                    (0, 0, 255),
+                    5,
+                )
 
-            im = cv2.resize(self.readers_cache.get_frame(i), self.window_size)
+            im = cv2.resize(im, self.window_size)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
             surf = pygame.surfarray.make_surface(im)
             self.screen.blit(surf, (0, 0))
@@ -220,8 +234,12 @@ class Timeline:
             if query_input is not None:
                 query = Query()
                 results = query.query_db(query_input)
+                print(results)
                 print("QUERY : ", query_input)
-                i = int(results[0]["id"])
+                i = int(list(results.keys())[0])
+                self.current_bbs = []
+                for entry in results[list(results.keys())[0]]:
+                    self.current_bbs.append(entry["bb"])
                 query_input = None
 
             if t > utils.FPS * utils.SECONDS_PER_REC:
