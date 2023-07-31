@@ -75,7 +75,7 @@ class Background:
             self.metadata[str(self.i)] = {
                 "source": window_title,
                 "time": t,
-                "index": self.i,
+                # "index": self.i,
             }
             json.dump(
                 self.metadata, open(os.path.join(self.cache_path, "metadata.json"), "w")

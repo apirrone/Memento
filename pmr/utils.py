@@ -97,7 +97,6 @@ class Reader:
         for i, frame in enumerate(self.container.decode(self.stream)):
             self.frames.append(frame)
         self.offset = offset
-        print(filename, self.offset)
 
     # TODO there is a bug here, the found frame does not correspond to the ocr data
     def get_frame(self, frame_i):
@@ -119,8 +118,18 @@ class ReadersCache:
         video_id = self.select_video(frame_id)
         offset = video_id * (FPS * SECONDS_PER_REC)
         if video_id not in self.readers:  # Caching reader
+            start = time.time()
             self.readers[video_id] = Reader(
                 os.path.join(self.cache_path, str(video_id) + ".mp4"), offset=offset
+            )
+            print(
+                "Caching reader",
+                video_id,
+                "at",
+                offset,
+                "offset frames took",
+                time.time() - start,
+                "seconds",
             )
         return self.readers[video_id]
 
