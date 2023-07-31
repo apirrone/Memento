@@ -8,9 +8,9 @@ from pmr.process import process_image, draw_results
 import pmr.utils as utils
 import asyncio
 import os
-import queue
-import threading
 import time
+import multiprocessing
+from multiprocessing import Queue
 
 
 class Background:
@@ -31,15 +31,20 @@ class Background:
 
         self.running = True
         self.i = 0
-        self.done_processing = 0
 
-        self.images_queue = queue.Queue()
-        threading.Thread(target=self.process_images, daemon=True).start()
+        self.images_queue = Queue()
+        self.nb_workers = 2
+        self.workers = []
+        for i in range(self.nb_workers):
+            self.workers.append(multiprocessing.Process(target=self.process_images, args=()))
+            self.workers[-1].start()
+            print("started worker", i)
 
     def process_images(self):
         # Infinite worker
         while True:
             data = self.images_queue.get()
+            i = data["i"]
             im = data["im"]
             window_title = data["window_title"]
             t = data["t"]
@@ -55,11 +60,9 @@ class Background:
                         "time": t,
                     }
                 ],
-                ids=[str(self.i)],
+                ids=[str(i)],
             )
             print("Adding to db time :", time.time() - start)
-            self.done_processing += 1
-            self.images_queue.task_done()
 
     def run(self):
         print("Running in background ...")
@@ -86,10 +89,7 @@ class Background:
             self.images_queue.put(
                 {"im": im, "window_title": window_title, "t": t, "i": self.i}
             )
-            print(
-                "Frames processed in queue :",
-                str(self.done_processing) + "/" + str(self.i),
-            )
+            print("QUEUE SIZE", self.images_queue.qsize())
 
             self.i += 1
             if (self.i % (utils.FPS * utils.SECONDS_PER_REC)) == 0:
