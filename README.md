@@ -26,3 +26,16 @@ $ pmr-query
 ```console
 $ pmr-timeline
 ```
+
+
+## TODO / Ideas
+- langchain llm to query the timeline
+- click on the timeline
+  - + frame preview ? would be nice
+- ctrl + f in the timeline to query
+- timebar scroll (with adequate cache dump)
+- better ocr 
+- summary of your day (?)
+- activity stats
+- 
+  
