@@ -67,7 +67,7 @@ class Background:
                 ],
                 ids=[str(i)],
             )
-            # cv2.imwrite(str(i)+".png", process.draw_results(results, im))
+            cv2.imwrite(str(i)+".png", process.draw_results(results, im))
 
     def run(self):
         print("Running in background ...")
