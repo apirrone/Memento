@@ -10,6 +10,7 @@ import asyncio
 import os
 import queue
 import threading
+import time
 
 
 class Background:
@@ -42,7 +43,10 @@ class Background:
             im = data["im"]
             window_title = data["window_title"]
             t = data["t"]
+            start = time.time()
             results = process_image(im)
+            print("Processing time :", time.time() - start)
+            start = time.time()
             self.collection.add(
                 documents=[json.dumps(results)],
                 metadatas=[
@@ -53,9 +57,7 @@ class Background:
                 ],
                 ids=[str(self.i)],
             )
-            # cv2.imwrite(
-            #     "/tmp/" + str(self.done_processing) + ".png", draw_results(results, im)
-            # )
+            print("Adding to db time :", time.time() - start)
             self.done_processing += 1
             self.images_queue.task_done()
 
@@ -84,7 +86,10 @@ class Background:
             self.images_queue.put(
                 {"im": im, "window_title": window_title, "t": t, "i": self.i}
             )
-            print("Frames processed in queue :", str(self.done_processing)+"/"+str(self.i))
+            print(
+                "Frames processed in queue :",
+                str(self.done_processing) + "/" + str(self.i),
+            )
 
             self.i += 1
             if (self.i % (utils.FPS * utils.SECONDS_PER_REC)) == 0:

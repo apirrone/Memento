@@ -18,7 +18,9 @@ setup(
         "pytesseract==0.3.10",
         "xlib==0.21",
         "av==10.0.0",
-        "pygame==2.5.0"
+        "pygame==2.5.0",
+        # "Pillow==9.5.0"
+
     ],
     entry_points={
         "console_scripts": [
