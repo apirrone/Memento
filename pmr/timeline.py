@@ -1,11 +1,4 @@
-from pmr.utils import ReadersCache
-import json
-import os
 import pygame
-import cv2
-import pmr.utils as utils
-import numpy as np
-from pmr.query_db import Query
 from pmr.timeline_utils import FrameGetter, TimeBar, SearchBar
 
 
