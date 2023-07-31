@@ -30,8 +30,8 @@ $ pmr-timeline
 
 ## TODO / Ideas
 - langchain llm to query the timeline
-- click on the timeline
-  - + frame preview ? would be nice
+- click on the timeline DONE
+  - + frame preview ? would be nice DONE
 - ctrl + f in the timeline to query
 - timebar scroll (with adequate cache dump)
 - better ocr 

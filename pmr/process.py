@@ -80,30 +80,33 @@ def process_image_easyocr(image, reader, conf_threshold=0.1, batch_size=4):
 
 
 def preprocess_image_ocr(image):
-    #screenshot are 72x72dpi?
+    # screenshot are 72x72dpi?
     img = cv2.resize(image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
 
     gry = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if gry.mean() > 127:
-        thr = cv2.adaptiveThreshold(gry, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-                                    cv2.THRESH_BINARY, 57, 1.0)
+        thr = cv2.adaptiveThreshold(
+            gry, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 57, 1.0
+        )
 
     else:
-        thr = cv2.adaptiveThreshold(gry, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-                                    cv2.THRESH_BINARY_INV, 57, 1.0)
-
+        thr = cv2.adaptiveThreshold(
+            gry, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 57, 1.0
+        )
 
     # cv2.imwrite("pre.png", thr)
     return thr
 
+
 def process_image_tesseract(image, conf_threshold=10):
-    custom_oem_psm_config = r'--oem 3 --psm 11'
+    custom_oem_psm_config = r"--oem 3 --psm 11"
     results = pytesseract.image_to_data(
-        preprocess_image_ocr(image),  # Maybe resize the image here for better detection ?
+        preprocess_image_ocr(
+            image
+        ),  # Maybe resize the image here for better detection ?
         output_type=Output.DICT,
         lang="eng+fra",
-        config=custom_oem_psm_config
-
+        config=custom_oem_psm_config,
     )
     # results = pytesseract.image_to_data(
     #     image,  # Maybe resize the image here for better detection ?
@@ -132,8 +135,9 @@ def process_image_tesseract(image, conf_threshold=10):
         }
         res.append(entry)
 
-        #    return merge_boxes(res)  # make lines
-    return res
+    return merge_boxes(res)  # make lines
+    # return res
+
 
 def process_image(image, ocr="tesseract", reader=None):
     if ocr == "tesseract":
@@ -146,10 +150,10 @@ def process_image(image, ocr="tesseract", reader=None):
 
 def draw_results(res, image):
     for entry in res:
-        x = entry["x"]//2 #because I make a resize factor 2
-        y = entry["y"]//2
-        w = entry["w"]//2
-        h = entry["h"]//2
+        x = entry["x"] // 2  # because I make a resize factor 2
+        y = entry["y"] // 2
+        w = entry["w"] // 2
+        h = entry["h"] // 2
         text = entry["text"]
 
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
