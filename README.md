@@ -15,24 +15,20 @@ Run in a terminal
 $ pmr-bg
 ```
 
-### Query :
-
-```console
-$ pmr-query
-```
-
-### Show timeline : 
+### Timeline mode: 
 
 ```console
 $ pmr-timeline
 ```
+
+Then use `ctrl+f` to search
 
 
 ## TODO / Ideas
 - langchain llm to query the timeline
 - click on the timeline DONE
   - + frame preview ? would be nice DONE
-- ctrl + f in the timeline to query
+- ctrl + f in the timeline to query DONE
 - timebar scroll (with adequate cache dump)
 - better ocr 
 - summary of your day (?)
