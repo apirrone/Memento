@@ -192,10 +192,10 @@ class Timeline:
             self.current_app = self.metadata[str(i)]["window_title"]
             im = self.readers_cache.get_frame(i)
             for bb in self.current_bbs:
-                x = bb["x"]//2
-                y = bb["y"]//2
-                w = bb["w"]//2
-                h = bb["h"]//2
+                x = bb["x"] // 2
+                y = bb["y"] // 2
+                w = bb["w"] // 2
+                h = bb["h"] // 2
                 im = cv2.rectangle(
                     im,
                     (x, y),
@@ -234,8 +234,6 @@ class Timeline:
             if query_input is not None:
                 query = Query()
                 results = query.query_db(query_input)
-                print(results)
-                print("QUERY : ", query_input)
                 i = int(list(results.keys())[0])
                 self.current_bbs = []
                 for entry in results[list(results.keys())[0]]:
