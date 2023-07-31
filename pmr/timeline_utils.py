@@ -209,7 +209,7 @@ class SearchBar:
 
     def start_query(self):
         query_input = self.input
-        results = Query().query_db(query_input)
+        results = Query().query_db(query_input, nb_results=20)
         self.frame_getter.set_annotation(results)
         self.found = True
 
