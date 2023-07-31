@@ -227,7 +227,7 @@ class SearchBar:
             elif event.key == pygame.K_BACKSPACE:
                 self.input = self.input[:-1]
             elif event.key == pygame.K_RETURN:
-                if not self.found and len(self.input) > 0:
+                if self.active and not self.found and len(self.input) > 0:
                     self.start_query()
                 elif self.found:
                     return True
