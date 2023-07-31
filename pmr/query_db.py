@@ -16,7 +16,7 @@ class Query:
         self.readers_cache = utils.ReadersCache(self.cache_path)
 
     def query_db(self, input):
-        results = self.collection.query(query_texts=[input], n_results=2)
+        results = self.collection.query(query_texts=[input], n_results=5)
         tmp_client = chromadb.Client()
         for i, id in enumerate(results["ids"][0]):
             doc = results["documents"][0][i]
@@ -32,12 +32,13 @@ class Query:
             n_results = 5
             res = col.query(query_texts=[input], n_results=n_results)
             n_results = len(res["ids"][0])
-            for i in range(n_results):
-                r = json.loads(res["documents"][0][i])
+            for j in range(n_results):
+                r = json.loads(res["documents"][0][j])
                 frame = reader.get_frame(int(id))
                 if frame is None:
                     print("Frame not found")
                     print(res)
                     continue
                 im = draw_results([r], frame)
-                cv2.imwrite("query_" + str(i) + ".png", im)
+                print("Writing query_" + str(i * j) + ".png")
+                cv2.imwrite("query_" + str(i * j) + ".png", im)
