@@ -59,8 +59,8 @@ class TimeBar:
 
 
 class Timeline:
-    def __init__(self, cache_path):
-        self.cache_path = cache_path
+    def __init__(self):
+        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
         self.readers_cache = ReadersCache(self.cache_path)
         self.metadata = json.load(open(os.path.join(self.cache_path, "metadata.json")))
         self.window_size = (1920, 1080)
@@ -99,7 +99,3 @@ class Timeline:
             pygame.display.flip()
             dt = clock.tick() / 1000.0
             t += dt
-
-
-t = Timeline(os.path.join(os.environ["HOME"], ".cache", "pmr"))
-t.run()

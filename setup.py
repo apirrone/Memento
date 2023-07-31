@@ -24,7 +24,7 @@ setup(
         "console_scripts": [
             "pmr-bg = pmr:bg",
             "pmr-query = pmr:query",
-            "pmr-timeline = pmr:timeline",
+            "pmr-timeline = pmr:tl",
         ]
     },
     author="Antoine Pirrone",

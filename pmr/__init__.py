@@ -15,6 +15,6 @@ def query():
     q.query_db(i)
 
 
-def timeline():
+def tl():
     t = pmr.timeline.Timeline()
     t.run()
