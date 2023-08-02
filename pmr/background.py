@@ -13,7 +13,7 @@ import multiprocessing
 from multiprocessing import Queue
 import signal
 
-# import easyocr
+import easyocr
 
 
 class Background:
@@ -50,7 +50,7 @@ class Background:
 
     def process_images(self):
         # Infinite worker
-        # easyocr_reader = easyocr.Reader(["fr", "en"], gpu=True)
+        easyocr_reader = easyocr.Reader(["fr", "en"], gpu=True)
         # print("Done initializing easyocr")
 
         signal.signal(signal.SIGINT, self.stop_process)
@@ -61,8 +61,8 @@ class Background:
             window_title = data["window_title"]
             t = data["time"]
             start = time.time()
-            results = process.process_image(im, ocr="tesseract")
-            # results = process.process_image(im, ocr="easyocr", reader=easyocr_reader)
+            # results = process.process_image(im, ocr="tesseract")
+            results = process.process_image(im, ocr="easyocr", reader=easyocr_reader)
             print("Processing time :", time.time() - start)
 
             self.results_queue.put(
@@ -85,7 +85,7 @@ class Background:
                 ids=ids,
             )
 
-            # cv2.imwrite(str(i)+".png", process.draw_results(results, im))
+            cv2.imwrite(str(i)+".png", process.draw_results(results, im))
 
     def stop_rec(self, sig, frame):
         self.rec.stop()

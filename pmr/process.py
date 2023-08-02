@@ -61,7 +61,6 @@ def process_image_easyocr(image, reader, conf_threshold=0.1, batch_size=4):
         conf = result[2]
         if conf < conf_threshold:
             continue
-        print(conf)
         x = bb[0][0] * resize_factor
         y = bb[0][1] * resize_factor
         w = (bb[2][0] - bb[0][0]) * resize_factor
@@ -150,10 +149,10 @@ def process_image(image, ocr="tesseract", reader=None):
 
 def draw_results(res, image):
     for entry in res:
-        x = entry["x"] // 2  # because I make a resize factor 2
-        y = entry["y"] // 2
-        w = entry["w"] // 2
-        h = entry["h"] // 2
+        x = entry["x"]
+        y = entry["y"]
+        w = entry["w"]
+        h = entry["h"]
         text = entry["text"]
 
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
