@@ -1,7 +1,5 @@
 import chromadb
 import json
-from pmr.process import draw_results
-import cv2
 import os
 import pmr.utils as utils
 

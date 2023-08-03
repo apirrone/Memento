@@ -4,6 +4,7 @@ import fractions
 import time
 import asyncio
 import os
+import cv2
 
 FPS = 1
 SECONDS_PER_REC = 10
@@ -150,3 +151,19 @@ class ReadersCache:
 def in_rect(rect, pos):
     x, y, w, h = rect
     return x <= pos[0] <= x + w and y <= pos[1] <= y + h
+
+
+def draw_results(res, image):
+    for entry in res:
+        x = entry["x"]
+        y = entry["y"]
+        w = entry["w"]
+        h = entry["h"]
+        text = entry["text"]
+
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(
+            image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 200), 2
+        )
+
+    return image

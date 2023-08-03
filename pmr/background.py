@@ -4,7 +4,6 @@ import cv2
 import chromadb
 import json
 import datetime
-import pmr.process as process
 import pmr.utils as utils
 import asyncio
 import os
@@ -12,8 +11,7 @@ import time
 import multiprocessing
 from multiprocessing import Queue
 import signal
-
-import easyocr
+from pmr.OCR import EasyOCR, Tesseract
 
 
 class Background:
@@ -37,7 +35,7 @@ class Background:
 
         self.images_queue = Queue()
         self.results_queue = Queue()
-        self.nb_workers = 2
+        self.nb_workers = 1
         self.workers = []
         self.pids = []
         for i in range(self.nb_workers):
@@ -50,19 +48,24 @@ class Background:
 
     def process_images(self):
         # Infinite worker
-        easyocr_reader = easyocr.Reader(["fr", "en"], gpu=True)
-        # print("Done initializing easyocr")
+
+        # ocr = EasyOCR()
+        ocr = Tesseract()
 
         signal.signal(signal.SIGINT, self.stop_process)
         while True:
+            start = time.time()
             data = self.images_queue.get()
+            print("Worker", os.getpid(), "waited for", time.time() - start, "seconds")
+            print("Worker", os.getpid(), "starting job")
+            job_start = time.time()
+
             frame_i = data["frame_i"]
             im = data["im"]
             window_title = data["window_title"]
             t = data["time"]
             start = time.time()
-            # results = process.process_image(im, ocr="tesseract")
-            results = process.process_image(im, ocr="easyocr", reader=easyocr_reader)
+            results = ocr.process_image(im)
             print("Processing time :", time.time() - start)
 
             self.results_queue.put(
@@ -74,18 +77,14 @@ class Background:
                 }
             )
 
-            texts = []
-            ids = []
-            for i in range(len(results)):
-                texts.append(results[i]["text"])
-                ids.append(str(frame_i) + "-" + str(i))
-
-            self.collection.add(
-                documents=texts,
-                ids=ids,
+            # cv2.imwrite(str(i) + ".png", utils.draw_results(results, im))
+            print(
+                "Worker",
+                os.getpid(),
+                "finished job in",
+                time.time() - job_start,
+                "seconds",
             )
-
-            cv2.imwrite(str(i)+".png", process.draw_results(results, im))
 
     def stop_rec(self, sig, frame):
         self.rec.stop()
@@ -98,12 +97,18 @@ class Background:
 
     def run(self):
         signal.signal(signal.SIGINT, self.stop_rec)
+
+        all_results = []
+
         print("Running in background ...")
+        last_sc = time.time()
         while self.running:
             window_title = utils.get_active_window()
 
             # Get screenshot and add it to recorder
+            print("time since last screenshot", time.time() - last_sc)
             im = np.array(self.sct.grab(self.sct.monitors[1]))
+            last_sc = time.time()
             im = im[:, :, :-1]
             im = cv2.resize(im, utils.RESOLUTION)
             asyncio.run(self.rec.new_im(im))
@@ -124,22 +129,24 @@ class Background:
                 "time": t,
             }
 
-            try:
-                result = self.results_queue.get(False)
-                bbs = []
-                for i in range(len(result["results"])):
-                    bb = {}
-                    bb["x"] = result["results"][i]["x"]
-                    bb["y"] = result["results"][i]["y"]
-                    bb["w"] = result["results"][i]["w"]
-                    bb["h"] = result["results"][i]["h"]
-                    bbs.append(bb)
+            # deque results
+            getting = True
+            while getting:
+                try:
+                    result = self.results_queue.get(False)
+                    all_results.append(result)
+                    bbs = []
+                    for i in range(len(result["results"])):
+                        bb = {}
+                        bb["x"] = result["results"][i]["x"]
+                        bb["y"] = result["results"][i]["y"]
+                        bb["w"] = result["results"][i]["w"]
+                        bb["h"] = result["results"][i]["h"]
+                        bbs.append(bb)
 
-                self.metadata[str(result["frame_i"])]["bbs"] = bbs
-                print("GOT RESULT")
-            except Exception:
-                print("results queue empty")
-                pass
+                    self.metadata[str(result["frame_i"])]["bbs"] = bbs
+                except Exception:
+                    getting = False
 
             json.dump(
                 self.metadata,
@@ -156,3 +163,20 @@ class Background:
                 self.rec = utils.Recorder(
                     os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
                 )
+                texts = []
+                ids = []
+                for result in all_results:
+                    for i in range(len(result["results"])):
+                        texts.append(result["results"][i]["text"])
+                        ids.append(str(result["frame_i"]) + "-" + str(i))
+
+                # This takes a very long time ...
+                # It got worse when I separated words/sentences as documents, rather dans full json dump
+                # Updating db
+                print("UPDATING DB ...")
+                add_db_start = time.time()
+                self.collection.add(
+                    documents=texts,
+                    ids=ids,
+                )
+                print("Add to db time :", time.time() - add_db_start)
