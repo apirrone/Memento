@@ -16,7 +16,7 @@ class Query:
 
     def query_db(self, input, nb_results=10):
         results = self.collection.query(query_texts=[input], n_results=nb_results)
-        print(results)
+        # print(results)
         final_results = {}
         ids = results["ids"][0]
         text = results["documents"][0]

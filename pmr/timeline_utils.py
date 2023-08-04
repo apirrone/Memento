@@ -26,7 +26,7 @@ class FrameGetter:
 
     def get_frame(self, i, raw=False):
         im = self.readers_cache.get_frame(i)
-        im = self.annotate_frame(i, im)
+        # im = self.annotate_frame(i, im)
         if not raw:
             im = cv2.resize(im, self.window_size)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
@@ -221,24 +221,18 @@ class SearchBar:
         self.draw_text(screen)
 
     def start_query(self):
+        print("start query")
+        self.frame_getter.clear_annotations()
         query_input = self.input
         results = Query().query_db(query_input, nb_results=20)
         self.frame_getter.set_annotation(results)
         self.found = True
 
-    # TODO clarify this function
-    # Weird behavious between enter and ctrl+f
     def event(self, event):
+        ret = False
         if event.type == pygame.KEYDOWN:
             if event.mod & pygame.KMOD_CTRL and event.key == pygame.K_f:
-                if self.active and self.input_changed and len(self.input) > 0:
-                    self.start_query()
-                elif self.active and not self.found and len(self.input) > 0:
-                    self.start_query()
-                elif self.active and self.found:
-                    return True
-                else:
-                    self.activate()
+                self.activate()
                 self.input_changed = False
             elif event.key == pygame.K_ESCAPE:
                 self.deactivate()
@@ -246,17 +240,15 @@ class SearchBar:
                 self.input = self.input[:-1]
                 self.input_changed = True
             elif event.key == pygame.K_RETURN:
-                if self.input_changed and self.active and len(self.input) > 0:
-                    self.start_query()
-                elif self.active and not self.found and len(self.input) > 0:
-                    self.start_query()
-                elif self.active and self.found:
-                    return True
+                if self.active and len(self.input) > 0:
+                    if self.input_changed or not self.found:
+                        self.start_query()
+                    ret = True
                 self.input_changed = False
-            else:
+            elif self.active:
                 try:
                     self.input_changed = True
                     self.input += chr(event.key)
                 except Exception:
                     pass
-        return False
+        return ret
