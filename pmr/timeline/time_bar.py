@@ -6,19 +6,26 @@ import pygame
 import datetime
 
 
+# TODO metada cache too
 class TimeBar:
     def __init__(self, frame_getter):
         self.frame_getter = frame_getter
         self.nb_frames = self.frame_getter.nb_frames
         self.metadata = self.frame_getter.metadata
-        ws = self.frame_getter.window_size
-        self.w = ws[0] - ws[0] // 5
-        self.h = ws[1] // 40
-        self.x = ws[0] // 10
-        self.y = ws[1] - self.h - ws[1] // 10
 
-        self.window_size = min(100, self.nb_frames)
+        # Actual graphical window size
+        ws = self.frame_getter.window_size
+        self.h = ws[1] // 40
+        self.x = 20
+        self.y = ws[1] - self.h - ws[1] // 10
+        self.w = ws[0] - self.x * 2
+
+        # Time window size
+        self.tws = min(utils.TIME_WINDOW_SIZE, self.nb_frames)
         self.frame_offset = 0  # from the right
+        self.compute_time_window()  # To be called when frame_offset changes
+
+        self.current_frame_i = self.tw_end - 1
 
         self.ig = IconGetter(size=self.h)
 
@@ -26,6 +33,10 @@ class TimeBar:
         self.today = datetime.datetime.now().strftime("%Y-%m-%d")
 
         self.build()
+
+    def compute_time_window(self):
+        self.tw_end = self.nb_frames - self.frame_offset
+        self.tw_start = self.tw_end - self.tws
 
     def get_friendly_date(self, date):
         day = date.split(" ")[0]
@@ -53,45 +64,59 @@ class TimeBar:
                 self.apps[app]["icon_small"] = icon_small
                 self.apps[app]["icon_big"] = icon_big
 
-    def get_frame_i(self, mouse_pos):
-        return int((mouse_pos[0] - self.x) / self.w * self.nb_frames)
+    def set_current_frame_i(self, frame_i):
+        self.current_frame_i = frame_i
 
-    def draw_cursor(self, screen, cursor_pos):
+    def move_cursor(self, delta):
+        self.current_frame_i = max(
+            self.tw_start, min(self.tw_end - 1, self.current_frame_i + delta)
+        )
+
+        if self.current_frame_i < self.tw_start + 20:
+            self.frame_offset = min(self.nb_frames - self.tws, self.frame_offset + 1)
+            self.compute_time_window()
+
+        if self.current_frame_i > self.tw_end - 20:
+            self.frame_offset = max(0, self.frame_offset - 1)
+            self.compute_time_window()
+
+    def get_frame_i(self, mouse_pos):
+        return int((mouse_pos[0] - self.x) / self.w * self.tws) + self.tw_start
+
+    def hover(self, mouse_pos):
+        return utils.in_rect((self.x, self.y, self.w, self.h), mouse_pos)
+
+    def draw_cursor(self, screen):
+        cursor_x = self.x + ((self.current_frame_i - self.tw_start) / self.tws) * self.w
         pygame.draw.line(
             screen,
             (255, 255, 255),
-            (self.x + (cursor_pos / self.nb_frames) * self.w, self.y - self.h),
-            (self.x + (cursor_pos / self.nb_frames) * self.w, self.y + self.h * 2),
+            (cursor_x, self.y - self.h),
+            (cursor_x, self.y + self.h * 2),
             5,
         )
 
-    def draw_bar(self, screen, mouse_pos, current_frame_i):
+    def draw_bar(self, screen, mouse_pos):
         segments = []
-        last_app = self.metadata[str(0)]["window_title"]
-        segments.append({"app": last_app, "start": 0, "end": 0})
 
         # Warning, it's backwards
-        s = self.nb_frames - self.frame_offset
-        e = s - self.window_size
-        for i in range(s, e, -1):
-            print(i)
-            # for i in range(self.nb_frames):
+        last_app = self.metadata[str(self.tw_end)]["window_title"]
+        segments.append({"app": last_app, "start": 0, "end": self.tw_end})
+        for i in range(self.tw_end, self.tw_start, -1):
             app = self.metadata[str(i)]["window_title"]
 
-            segments[-1]["end"] = i
+            segments[-1]["start"] = i  # current segment
             if app != last_app:
                 segments.append({"app": app, "start": i, "end": i})
             last_app = app
-        # print(segments)
-        # exit()
 
         for segment in segments:
             app = segment["app"]
-            start = segment["start"]
-            end = segment["end"]
+            start = segment["start"] - self.tw_start
+            end = segment["end"] - self.tw_start
             middle = (start + end) / 2
-            seg_x = self.x + (start / self.window_size) * self.w
-            seg_w = (end - start) / self.window_size * self.w
+            seg_x = self.x + (start / self.tws) * self.w
+            seg_w = (end - start) / self.tws * self.w
 
             pygame.draw.rect(
                 screen,
@@ -102,22 +127,20 @@ class TimeBar:
 
         for segment in segments:
             app = segment["app"]
-            start = segment["start"]
-            end = segment["end"]
+            start = segment["start"] - self.tw_start
+            end = segment["end"] - self.tw_start
             middle = (start + end) / 2
-            seg_x = self.x + (start / self.window_size) * self.w
-            seg_w = (end - start) / self.window_size * self.w
+            seg_x = self.x + (start / self.tws) * self.w
+            seg_w = (end - start) / self.tws * self.w
 
             if self.apps[app]["icon_small"] is not None:
-                if start <= current_frame_i <= end or utils.in_rect(
+                if start <= self.current_frame_i <= end or utils.in_rect(
                     (seg_x, self.y, seg_w, self.h), mouse_pos
                 ):
                     screen.blit(
                         self.apps[app]["icon_big"],
                         (
-                            self.x
-                            + (middle / self.window_size) * self.w
-                            - self.ig.size,
+                            self.x + (middle / self.tws) * self.w - self.ig.size,
                             self.y - self.ig.size // 2,
                         ),
                     )
@@ -126,15 +149,13 @@ class TimeBar:
                     screen.blit(
                         self.apps[app]["icon_small"],
                         (
-                            self.x
-                            + (middle / self.window_size) * self.w
-                            - self.ig.size // 2,
+                            self.x + (middle / self.tws) * self.w - self.ig.size // 2,
                             self.y,
                         ),
                     )
 
     def draw_preview(self, screen, mouse_pos):
-        if not utils.in_rect((self.x, self.y, self.w, self.h), mouse_pos):
+        if not self.hover(mouse_pos):
             return
         frame_i = self.get_frame_i(mouse_pos)
         frame = self.frame_getter.get_frame(frame_i, raw=True)
@@ -149,7 +170,7 @@ class TimeBar:
         )
 
     def draw_time(self, screen, mouse_pos):
-        if not utils.in_rect((self.x, self.y, self.w, self.h), mouse_pos):
+        if not self.hover(mouse_pos):
             return
         frame_i = self.get_frame_i(mouse_pos)
         time = self.metadata[str(frame_i)]["time"].strip('"')
@@ -181,8 +202,8 @@ class TimeBar:
             5,
         )
 
-    def draw(self, screen, current_frame_i, mouse_pos):
+    def draw(self, screen, mouse_pos):
         self.draw_preview(screen, mouse_pos)
-        self.draw_bar(screen, mouse_pos, current_frame_i)
-        # self.draw_cursor(screen, current_frame_i)
-        # self.draw_time(screen, mouse_pos)
+        self.draw_bar(screen, mouse_pos)
+        self.draw_cursor(screen)
+        self.draw_time(screen, mouse_pos)

@@ -16,12 +16,11 @@ class Timeline:
         self.frame_getter = FrameGetter(self.window_size)
         self.time_bar = TimeBar(self.frame_getter)
         self.search_bar = SearchBar(self.frame_getter)
-        self.current_frame_i = self.frame_getter.nb_frames-1
         self.t = 0
         self.dt = 0
 
     def draw_current_frame(self):
-        frame = self.frame_getter.get_frame(self.current_frame_i)
+        frame = self.frame_getter.get_frame(self.time_bar.current_frame_i)
         surf = pygame.surfarray.make_surface(frame)
         self.screen.blit(surf, (0, 0))
 
@@ -30,26 +29,32 @@ class Timeline:
         for event in pygame.event.get():
             found = self.search_bar.event(event)
             if event.type == pygame.MOUSEWHEEL:
-                self.current_frame_i = max(
-                    0,
-                    min(
-                        self.frame_getter.nb_frames - 1,
-                        self.current_frame_i + event.x - event.y,
-                    ),
-                )
+                # TODO keep that ? navigate fast with scroll and use arrow keys to navigate frame per frame ?
+                self.time_bar.move_cursor((event.x - event.y) * 2)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    self.current_frame_i = self.time_bar.get_frame_i(event.pos)
+                    if self.time_bar.hover(event.pos):
+                        self.time_bar.set_current_frame_i(
+                            self.time_bar.get_frame_i(event.pos)
+                        )
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    self.time_bar.move_cursor(-1)
+                if event.key == pygame.K_RIGHT:
+                    self.time_bar.move_cursor(1)
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    exit()
         if found:
-            self.current_frame_i = self.frame_getter.get_next_annotated_frame_i()
+            self.time_bar.set_current_frame_i(
+                self.frame_getter.get_next_annotated_frame_i()
+            )
 
     def run(self):
         while True:
             self.screen.fill((255, 255, 255))
             self.draw_current_frame()
-            self.time_bar.draw(
-                self.screen, self.current_frame_i, pygame.mouse.get_pos()
-            )
+            self.time_bar.draw(self.screen, pygame.mouse.get_pos())
             self.search_bar.draw(self.screen)
             self.handle_inputs()
 

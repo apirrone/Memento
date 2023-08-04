@@ -22,7 +22,7 @@ class FrameGetter:
         )
 
     def get_frame(self, i, raw=False):
-        im = self.readers_cache.get_frame(i)
+        im = self.readers_cache.get_frame(min(self.nb_frames - 1, i))
         im = self.annotate_frame(i, im)
         if not raw:
             im = cv2.resize(im, self.window_size)

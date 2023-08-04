@@ -9,13 +9,14 @@ import numpy as np
 
 FPS = 1
 SECONDS_PER_REC = 10
-AUDIO_PTIME = 0.020  # 20ms audio packetization
 VIDEO_CLOCK_RATE = 90000
 VIDEO_PTIME = 1 / FPS
 VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 # RESOLUTION = (2560, 1440)
 # RESOLUTION = (1280, 720)
 RESOLUTION = (1920, 1080)
+TIME_WINDOW_SIZE = 10 * FPS * SECONDS_PER_REC
+FRAME_CACHE_SIZE = 20
 
 
 def get_active_window():
@@ -115,7 +116,7 @@ class ReadersCache:
         self.readers = {}
         self.readers_ids = []  # in order to know the oldest reader
         self.cache_path = cache_path
-        self.cache_size = 50
+        self.cache_size = FRAME_CACHE_SIZE
 
     def select_video(self, frame_id):
         return frame_id // (FPS * SECONDS_PER_REC)
