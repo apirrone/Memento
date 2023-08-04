@@ -51,20 +51,9 @@ class TimeBar:
         for i in range(self.nb_frames):
             app = self.metadata[str(i)]["window_title"]
 
-            segments[-1]["end"] = i - 1
+            segments[-1]["end"] = i
             if app != last_app:
                 segments.append({"app": app, "start": i, "end": i})
-
-            pygame.draw.rect(
-                screen,
-                self.apps[app]["color"],
-                (
-                    self.x + (i / self.nb_frames) * self.w,
-                    self.y,
-                    self.w / self.nb_frames + 1,
-                    self.h,
-                ),
-            )
             last_app = app
 
         for segment in segments:
@@ -72,7 +61,22 @@ class TimeBar:
             start = segment["start"]
             end = segment["end"]
             middle = (start + end) / 2
-            seg_x = self.x + (middle / self.nb_frames) * self.w
+            seg_x = self.x + (start / self.nb_frames) * self.w
+            seg_w = (end - start) / self.nb_frames * self.w
+
+            pygame.draw.rect(
+                screen,
+                self.apps[app]["color"],
+                (seg_x, self.y, seg_w, self.h),
+                border_radius=self.h // 4,
+            )
+            
+        for segment in segments:
+            app = segment["app"]
+            start = segment["start"]
+            end = segment["end"]
+            middle = (start + end) / 2
+            seg_x = self.x + (start / self.nb_frames) * self.w
             seg_w = (end - start) / self.nb_frames * self.w
 
             if self.apps[app]["icon_small"] is not None:
@@ -84,7 +88,7 @@ class TimeBar:
                         (
                             self.x
                             + (middle / self.nb_frames) * self.w
-                            - self.ig.size // 2,
+                            - self.ig.size,
                             self.y - self.ig.size // 2,
                         ),
                     )
@@ -124,6 +128,6 @@ class TimeBar:
             )
 
     def draw(self, screen, current_frame_i, mouse_pos):
+        self.draw_preview(screen, mouse_pos)
         self.draw_bar(screen, mouse_pos, current_frame_i)
         self.draw_cursor(screen, current_frame_i)
-        self.draw_preview(screen, mouse_pos)
