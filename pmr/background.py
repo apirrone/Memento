@@ -99,8 +99,6 @@ class Background:
     def run(self):
         signal.signal(signal.SIGINT, self.stop_rec)
 
-        all_results = []
-
         print("Running in background ...")
         last_sc = time.time()
         while self.running:
@@ -135,9 +133,9 @@ class Background:
             while getting:
                 try:
                     result = self.results_queue.get(False)
-                    all_results.append(result)
                     bbs = []
                     text = []
+                    ids = []
                     for i in range(len(result["results"])):
                         bb = {}
                         bb["x"] = result["results"][i]["x"]
@@ -146,9 +144,21 @@ class Background:
                         bb["h"] = result["results"][i]["h"]
                         bbs.append(bb)
                         text.append(result["results"][i]["text"])
+                        ids.append(str(result["frame_i"]) + "-" + str(i))
 
                     self.metadata[str(result["frame_i"])]["bbs"] = bbs
                     self.metadata[str(result["frame_i"])]["text"] = text
+
+                    print("=========")
+                    print("UPDATING DB ...")
+                    add_db_start = time.time()
+                    self.collection.add(
+                        documents=text,
+                        ids=ids,
+                    )
+                    print("ADD TO DB TIME:", time.time() - add_db_start)
+                    print("=========")
+
                 except Exception:
                     getting = False
 
@@ -167,23 +177,3 @@ class Background:
                 self.rec = utils.Recorder(
                     os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
                 )
-                texts = []
-                ids = []
-                for result in all_results:
-                    for i in range(len(result["results"])):
-                        texts.append(result["results"][i]["text"])
-                        ids.append(str(result["frame_i"]) + "-" + str(i))
-
-                # This takes a very long time ...
-                # It got worse when I separated words/sentences as documents, rather dans full json dump
-                # Updating db
-                print("UPDATING DB ...")
-                add_db_start = time.time()
-                self.collection.add(
-                    documents=texts,
-                    ids=ids,
-                )
-                print("=========")
-                print("ADD TO DB TIME:", time.time() - add_db_start)
-                print("=========")
-                all_results = []
