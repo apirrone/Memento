@@ -87,7 +87,7 @@ class Background:
             )
 
     def stop_rec(self, sig, frame):
-        self.rec.stop()
+        # self.rec.stop()
         print("STOPPING MAIN", os.getpid())
         exit()
 
@@ -180,3 +180,4 @@ class Background:
                     ids=ids,
                 )
                 print("Add to db time :", time.time() - add_db_start)
+                all_results = []

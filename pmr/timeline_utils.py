@@ -6,6 +6,7 @@ import json
 import cv2
 import numpy as np
 import pygame
+from glob import glob
 
 
 class FrameGetter:
@@ -18,7 +19,7 @@ class FrameGetter:
         self.annotations = {}
         self.current_ret_annotated = 0
         self.nb_frames = (
-            (len(self.metadata.keys()) // (utils.FPS * utils.SECONDS_PER_REC))
+            len(glob(os.path.join(self.cache_path, "*.mp4")))
             * utils.FPS
             * utils.SECONDS_PER_REC
         )

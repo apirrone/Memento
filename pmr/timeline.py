@@ -9,7 +9,7 @@ class Timeline:
         self.frame_getter = FrameGetter(self.window_size)
         self.time_bar = TimeBar(self.frame_getter)
         self.search_bar = SearchBar(self.frame_getter)
-        self.current_frame_i = self.frame_getter.nb_frames
+        self.current_frame_i = self.frame_getter.nb_frames-1
         self.t = 0
         self.dt = 0
 
