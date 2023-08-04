@@ -51,7 +51,7 @@ class Background:
 
         # ocr = EasyOCR()
         # TODO tune resize factor (1 is ok, 2 is better but slower)
-        ocr = Tesseract(resize_factor=2, conf_threshold=50)
+        ocr = Tesseract(resize_factor=3, conf_threshold=50)
 
         signal.signal(signal.SIGINT, self.stop_process)
         while True:
@@ -136,19 +136,21 @@ class Background:
                     result = self.results_queue.get(False)
                     bbs = []
                     text = []
-                    ids = []
                     for i in range(len(result["results"])):
                         bb = {}
                         bb["x"] = result["results"][i]["x"]
                         bb["y"] = result["results"][i]["y"]
                         bb["w"] = result["results"][i]["w"]
                         bb["h"] = result["results"][i]["h"]
-                        bbs.append(bb)
                         text.append(result["results"][i]["text"])
-                        ids.append(str(result["frame_i"]) + "-" + str(i))
+                        bbs.append(bb)
 
                     self.metadata[str(result["frame_i"])]["bbs"] = bbs
                     self.metadata[str(result["frame_i"])]["text"] = text
+
+                    all_text_result = utils.make_paragraphs(result["results"], tol=5000)
+                    text = [all_text_result[0]["text"]]
+                    ids = [str(result["frame_i"])]
 
                     add_db_start = time.time()
                     self.collection.add(

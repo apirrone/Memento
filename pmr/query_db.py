@@ -2,6 +2,7 @@ import chromadb
 import json
 import os
 import pmr.utils as utils
+from thefuzz import fuzz
 
 
 class Query:
@@ -19,14 +20,32 @@ class Query:
         # print(results)
         final_results = {}
         ids = results["ids"][0]
-        text = results["documents"][0]
-        for i, id in enumerate(ids):
-            frame_id = id.split("-")[0]
-            bb_id = id.split("-")[1]
-            distance = results["distances"][0][i]
-            bb = self.metadata[frame_id]["bbs"][int(bb_id)]
-            if frame_id not in final_results:
-                final_results[frame_id] = []
-            final_results[frame_id].append({"bb": bb, "text": text[i], "distance": distance})
+        docs = results["documents"][0]
+
+        for i, frame_id in enumerate(ids):
+            frame_data = self.metadata[frame_id]
+
+            scores = []
+            matches = []
+            matches_bbs = []
+            for j, bb_id in enumerate(frame_data["bbs"]):
+                txt = str(frame_data["text"][j])
+                scores.append(fuzz.ratio(input, txt))
+                matches.append(txt)
+                matches_bbs.append(frame_data["bbs"][j])
+
+            zipped = zip(scores, matches, matches_bbs)
+            zipped = sorted(zipped, key=lambda x: x[0], reverse=True)
+            scores, matches, matches_bbs = zip(*zipped)
+
+            final_results[frame_id] = []
+            for j in range(len(scores[:10])):
+                final_results[frame_id].append(
+                    {
+                        "bb": matches_bbs[j],
+                        "text": matches[j],
+                        "score": scores[j],
+                    }
+                )
 
         return final_results

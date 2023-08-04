@@ -156,7 +156,8 @@ class Tesseract(OCR):
         # TODO tune this tol, make something better ? no overlapping bbs ?
         # With tol very high, it takes pretty much the whole screen.
         # Easy to test with 1 document = 1 screenshot
-        return utils.make_paragraphs(list(paragraphs.values()), tol=5000)
+        return list(paragraphs.values())
+        # return utils.make_paragraphs(list(paragraphs.values()), tol=200)
 
     # TODO replace tolerances in pixels by tolerances in percentage of the image size
     def merge_boxes(self, res, x_tol=50, y_tol=20):

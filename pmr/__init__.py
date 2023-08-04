@@ -11,7 +11,7 @@ def bg():
 def query():
     q = Query()
     # i = input("query : ")
-    i = "luxonis"
+    i = "chrome"
     print(q.query_db(i))
 
 

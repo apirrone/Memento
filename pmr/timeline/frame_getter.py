@@ -23,7 +23,7 @@ class FrameGetter:
 
     def get_frame(self, i, raw=False):
         im = self.readers_cache.get_frame(i)
-        # im = self.annotate_frame(i, im)
+        im = self.annotate_frame(i, im)
         if not raw:
             im = cv2.resize(im, self.window_size)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
@@ -33,7 +33,6 @@ class FrameGetter:
         if str(frame_i) in self.annotations.keys():
             entries = self.annotations[str(frame_i)]
             for entry in entries:
-                distance = entry["distance"]
                 bb = entry["bb"]
                 x = int(bb["x"])
                 y = int(bb["y"])

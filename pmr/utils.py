@@ -219,4 +219,5 @@ def make_paragraphs(res, tol=500):
         if not merged:
             paragraphs.append(init_paragraph())
             paragraphs[-1] = update_paragraph(paragraphs[-1], entry)
+
     return paragraphs
