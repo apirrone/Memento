@@ -46,6 +46,7 @@ class Timeline:
                         self.time_bar.set_current_frame_i(
                             self.time_bar.get_frame_i(event.pos)
                         )
+                        self.region_selector.reset()
                     else:
                         self.region_selector.start(event.pos)
             if event.type == pygame.MOUSEBUTTONUP:
@@ -76,6 +77,15 @@ class Timeline:
         )
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         region = self.region_selector.get_region()
+        if region is None:
+            return
+        region_area = (
+            region[2] - region[0]
+        ) * (
+            region[3] - region[1]
+        ) 
+        if region_area < 1:
+            return
         crop = frame[region[1] : region[3], region[0] : region[2]]
         results = self.ocr.process_image(crop)
         res = []
@@ -101,6 +111,9 @@ class Timeline:
             w = region[2] - region[0]
             h = region[3] - region[1]
             pygame.draw.rect(self.screen, (0, 255, 255), (x, y, w, h), 2)
+
+        if self.search_bar.active:
+            self.region_selector.reset()
 
     def run(self):
         while True:

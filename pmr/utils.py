@@ -242,8 +242,9 @@ class RegionSelector:
         self.ongoing = True
 
     def end(self, mouse_pos):
-        self.e = mouse_pos
-        self.ongoing = False
+        if self.ongoing:
+            self.e = mouse_pos
+            self.ongoing = False
 
     def reset(self):
         self.s = None
