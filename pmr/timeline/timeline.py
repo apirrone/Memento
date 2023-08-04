@@ -5,7 +5,6 @@ from pmr.timeline.search_bar import SearchBar
 import pmr.utils as utils
 
 
-# TODO auto scroll the time bar, because when too long the zones become too small and the cursor too
 class Timeline:
     def __init__(self):
         self.window_size = utils.RESOLUTION
