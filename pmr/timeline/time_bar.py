@@ -17,6 +17,9 @@ class TimeBar:
         self.x = ws[0] // 10
         self.y = ws[1] - self.h - ws[1] // 10
 
+        self.window_size = min(100, self.nb_frames)
+        self.frame_offset = 0  # from the right
+
         self.ig = IconGetter(size=self.h)
 
         self.apps = {}
@@ -66,21 +69,29 @@ class TimeBar:
         segments = []
         last_app = self.metadata[str(0)]["window_title"]
         segments.append({"app": last_app, "start": 0, "end": 0})
-        for i in range(self.nb_frames):
+
+        # Warning, it's backwards
+        s = self.nb_frames - self.frame_offset
+        e = s - self.window_size
+        for i in range(s, e, -1):
+            print(i)
+            # for i in range(self.nb_frames):
             app = self.metadata[str(i)]["window_title"]
 
             segments[-1]["end"] = i
             if app != last_app:
                 segments.append({"app": app, "start": i, "end": i})
             last_app = app
+        # print(segments)
+        # exit()
 
         for segment in segments:
             app = segment["app"]
             start = segment["start"]
             end = segment["end"]
             middle = (start + end) / 2
-            seg_x = self.x + (start / self.nb_frames) * self.w
-            seg_w = (end - start) / self.nb_frames * self.w
+            seg_x = self.x + (start / self.window_size) * self.w
+            seg_w = (end - start) / self.window_size * self.w
 
             pygame.draw.rect(
                 screen,
@@ -94,8 +105,8 @@ class TimeBar:
             start = segment["start"]
             end = segment["end"]
             middle = (start + end) / 2
-            seg_x = self.x + (start / self.nb_frames) * self.w
-            seg_w = (end - start) / self.nb_frames * self.w
+            seg_x = self.x + (start / self.window_size) * self.w
+            seg_w = (end - start) / self.window_size * self.w
 
             if self.apps[app]["icon_small"] is not None:
                 if start <= current_frame_i <= end or utils.in_rect(
@@ -104,7 +115,9 @@ class TimeBar:
                     screen.blit(
                         self.apps[app]["icon_big"],
                         (
-                            self.x + (middle / self.nb_frames) * self.w - self.ig.size,
+                            self.x
+                            + (middle / self.window_size) * self.w
+                            - self.ig.size,
                             self.y - self.ig.size // 2,
                         ),
                     )
@@ -114,7 +127,7 @@ class TimeBar:
                         self.apps[app]["icon_small"],
                         (
                             self.x
-                            + (middle / self.nb_frames) * self.w
+                            + (middle / self.window_size) * self.w
                             - self.ig.size // 2,
                             self.y,
                         ),
@@ -171,5 +184,5 @@ class TimeBar:
     def draw(self, screen, current_frame_i, mouse_pos):
         self.draw_preview(screen, mouse_pos)
         self.draw_bar(screen, mouse_pos, current_frame_i)
-        self.draw_cursor(screen, current_frame_i)
-        self.draw_time(screen, mouse_pos)
+        # self.draw_cursor(screen, current_frame_i)
+        # self.draw_time(screen, mouse_pos)
