@@ -19,6 +19,8 @@ setup(
         "xlib==0.21",
         "av==10.0.0",
         "pygame==2.5.0",
+        "TextTron==0.45",
+        "thefuzz==0.19.0"
         # "easyocr==1.7.0",
         # "Pillow==9.5.0"
 

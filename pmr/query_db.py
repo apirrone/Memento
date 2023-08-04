@@ -29,8 +29,10 @@ class Query:
             matches = []
             matches_bbs = []
             for j, bb_id in enumerate(frame_data["bbs"]):
-                txt = str(frame_data["text"][j].lower())
-                scores.append(fuzz.ratio(input, txt))
+
+                txt = str(frame_data["text"][j])
+                scores.append(fuzz.ratio(input.lower(), txt.lower()))
+
                 matches.append(txt)
                 matches_bbs.append(frame_data["bbs"][j])
 

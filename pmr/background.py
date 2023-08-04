@@ -11,7 +11,7 @@ import time
 import multiprocessing
 from multiprocessing import Queue
 import signal
-from pmr.OCR import EasyOCR, Tesseract
+from pmr.OCR import Tesseract
 
 
 class Background:

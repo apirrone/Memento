@@ -8,9 +8,14 @@ import pmr.utils as utils
 class Timeline:
     def __init__(self):
         self.window_size = utils.RESOLUTION
-        pygame.init()
+
+        # Faster than pygame.init()
+        pygame.display.init()
+        pygame.font.init()
+
+        self.screen = pygame.display.set_mode(self.window_size, flags=pygame.SRCALPHA)
+        # +pygame.HIDDEN
         pygame.key.set_repeat(500, 50)
-        self.screen = pygame.display.set_mode(self.window_size, pygame.SRCALPHA)
         self.clock = pygame.time.Clock()
         self.frame_getter = FrameGetter(self.window_size)
         self.time_bar = TimeBar(self.frame_getter)
@@ -20,7 +25,7 @@ class Timeline:
 
     def draw_current_frame(self):
         frame = self.frame_getter.get_frame(self.time_bar.current_frame_i)
-        surf = pygame.surfarray.make_surface(frame)
+        surf = pygame.surfarray.make_surface(frame).convert()
         self.screen.blit(surf, (0, 0))
 
     def handle_inputs(self):
@@ -41,9 +46,9 @@ class Timeline:
                     self.time_bar.move_cursor(-1)
                 if event.key == pygame.K_RIGHT:
                     self.time_bar.move_cursor(1)
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    exit()
+                # if event.key == pygame.K_ESCAPE:
+                #     pygame.quit()
+                #     exit()
         if found:
             self.time_bar.set_current_frame_i(
                 self.frame_getter.get_next_annotated_frame_i()
@@ -57,6 +62,6 @@ class Timeline:
             self.search_bar.draw(self.screen)
             self.handle_inputs()
 
-            pygame.display.flip()
+            pygame.display.update()
             self.dt = self.clock.tick() / 1000.0
             self.t += self.dt
