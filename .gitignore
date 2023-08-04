@@ -3,6 +3,7 @@ processed/*
 __pycache__/*
 pmr_db/*
 *.png
+*.jpg
 *.json
 pmr/__pycache__/*
 pmr.egg-info/*

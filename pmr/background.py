@@ -51,23 +51,26 @@ class Background:
 
         # ocr = EasyOCR()
         # TODO tune resize factor (1 is ok, 2 is better but slower)
-        ocr = Tesseract(resize_factor=2, conf_threshold=50)
+        ocr = Tesseract(resize_factor=1, conf_threshold=50)
 
         signal.signal(signal.SIGINT, self.stop_process)
         while True:
             start = time.time()
             data = self.images_queue.get()
-            # print("Worker", os.getpid(), "waited for", time.time() - start, "seconds")
-            # print("Worker", os.getpid(), "starting job")
-            job_start = time.time()
 
             frame_i = data["frame_i"]
             im = data["im"]
+            prev_im = data["prev_im"]
             window_title = data["window_title"]
             t = data["time"]
-            start = time.time()
-            results = ocr.process_image(im)
-            print("Processing time :", time.time() - start)
+            diffscore = utils.imgdiff(im, prev_im)
+            if diffscore < 0.1:  # TODO tune this
+                results = []
+                print("Skipping frame", frame_i, "because of imgdiff score ", diffscore)
+            else:
+                start = time.time()
+                results = ocr.process_image(im)
+                print("Processing time :", time.time() - start)
 
             self.results_queue.put(
                 {
@@ -79,14 +82,6 @@ class Background:
             )
 
             # cv2.imwrite(str(frame_i) + ".png", utils.draw_results(results, im))
-
-            # print(
-            #     "Worker",
-            #     os.getpid(),
-            #     "finished job in",
-            #     time.time() - job_start,
-            #     "seconds",
-            # )
 
     def stop_rec(self, sig, frame):
         # self.rec.stop()
@@ -102,6 +97,9 @@ class Background:
 
         print("Running in background ...")
         last_sc = time.time()
+        prev_im = np.zeros(
+            (utils.RESOLUTION[1], utils.RESOLUTION[0], 3), dtype=np.uint8
+        )
         while self.running:
             window_title = utils.get_active_window()
 
@@ -118,11 +116,13 @@ class Background:
             self.images_queue.put(
                 {
                     "im": im,
+                    "prev_im": prev_im,
                     "window_title": window_title,
                     "time": t,
                     "frame_i": self.frame_i,
                 }
             )
+            prev_im = im
 
             self.metadata[str(self.frame_i)] = {
                 "window_title": window_title,

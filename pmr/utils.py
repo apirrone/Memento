@@ -221,3 +221,8 @@ def make_paragraphs(res, tol=500):
             paragraphs[-1] = update_paragraph(paragraphs[-1], entry)
 
     return paragraphs
+
+
+def imgdiff(im1, im2):
+    diff = np.bitwise_xor(im1, im2)
+    return np.sum(diff) / (im1.shape[0] * im1.shape[1] * im1.shape[2])
