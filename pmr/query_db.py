@@ -29,7 +29,7 @@ class Query:
             matches = []
             matches_bbs = []
             for j, bb_id in enumerate(frame_data["bbs"]):
-                txt = str(frame_data["text"][j])
+                txt = str(frame_data["text"][j].lower())
                 scores.append(fuzz.ratio(input, txt))
                 matches.append(txt)
                 matches_bbs.append(frame_data["bbs"][j])
@@ -38,14 +38,20 @@ class Query:
             zipped = sorted(zipped, key=lambda x: x[0], reverse=True)
             scores, matches, matches_bbs = zip(*zipped)
 
-            final_results[frame_id] = []
+            frame_has_result=False
+            final_results[frame_id]=[]
             for j in range(len(scores[:10])):
-                final_results[frame_id].append(
-                    {
-                        "bb": matches_bbs[j],
-                        "text": matches[j],
-                        "score": scores[j],
-                    }
-                )
+                if scores[j] > 50:
+                    final_results[frame_id].append(
+                        {
+                            "bb": matches_bbs[j],
+                            "text": matches[j],
+                            "score": scores[j],
+                        }
+                    )
+                    frame_has_result=True
+            if not frame_has_result:
+                final_results={}
+        print(f'query: {input} query results: {final_results}\n allresults: {results}')
 
         return final_results

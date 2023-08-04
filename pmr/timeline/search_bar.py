@@ -64,9 +64,13 @@ class SearchBar:
         print("start query")
         self.frame_getter.clear_annotations()
         query_input = self.input
-        results = Query().query_db(query_input, nb_results=1)
-        self.frame_getter.set_annotation(results)
-        self.found = True
+        results = Query().query_db(query_input, nb_results=5)
+        if len(results) > 0:
+            self.frame_getter.set_annotation(results)
+            self.found = True
+        else:
+            self.found = False
+
 
     def event(self, event):
         ret = False

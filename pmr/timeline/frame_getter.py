@@ -58,12 +58,15 @@ class FrameGetter:
         return frame
 
     def get_next_annotated_frame_i(self):
-        frame_i = list(self.annotations.keys())[self.current_ret_annotated]
-        self.current_ret_annotated += 1
-        if self.current_ret_annotated >= len(self.annotations.keys()):
-            self.current_ret_annotated = 0
-        return int(frame_i)
+        if len(self.annotations.keys()) > 0:
 
+            frame_i = list(self.annotations.keys())[self.current_ret_annotated]
+            self.current_ret_annotated += 1
+            if self.current_ret_annotated >= len(self.annotations.keys()):
+                self.current_ret_annotated = 0
+            return int(frame_i)
+        else:
+            return 0
     def set_annotation(self, annotations):
         self.annotations = annotations
 

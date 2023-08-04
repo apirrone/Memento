@@ -92,7 +92,7 @@ class EasyOCR(OCR):
 
 
 class Tesseract(OCR):
-    def __init__(self, langs="eng+fra", resize_factor=2, conf_threshold=10):
+    def __init__(self, langs="eng+fra", resize_factor=2, conf_threshold=90):
         super().__init__()
         self.langs = langs
         self.rf = resize_factor
