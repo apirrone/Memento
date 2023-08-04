@@ -43,7 +43,7 @@ class Query:
             frame_has_result=False
             final_results[frame_id]=[]
             for j in range(len(scores[:10])):
-                if scores[j] > 50:
+                if scores[j] > 40:
                     final_results[frame_id].append(
                         {
                             "bb": matches_bbs[j],

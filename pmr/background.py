@@ -51,7 +51,7 @@ class Background:
 
         # ocr = EasyOCR()
         # TODO tune resize factor (1 is ok, 2 is better but slower)
-        ocr = Tesseract(resize_factor=1, conf_threshold=50)
+        ocr = Tesseract(resize_factor=1, conf_threshold=90)
 
         signal.signal(signal.SIGINT, self.stop_process)
         while True:
