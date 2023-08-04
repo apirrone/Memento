@@ -20,7 +20,7 @@ class FrameGetter:
             * utils.FPS
             * utils.SECONDS_PER_REC
         )
-        self.nb_results=0
+        self.nb_results = 0
 
     def get_frame(self, i, raw=False):
         im = self.readers_cache.get_frame(min(self.nb_frames - 1, i))
@@ -57,31 +57,30 @@ class FrameGetter:
                     2,
                 )
             frame = cv2.putText(
-                    frame,
-                    f'{self.nb_results} results',
-                    (50, 50),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1,
-                    (0, 0, 255),
-                    2,
-                )
+                frame,
+                f"{self.nb_results} results",
+                (50, 50),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0, 0, 255),
+                2,
+            )
 
-        elif self.nb_results==-1:
+        elif self.nb_results == -1:
             frame = cv2.putText(
-                    frame,
-                    "No result",
-                    (50, 50),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1,
-                    (0, 0, 255),
-                    2,
-                )
+                frame,
+                "No result",
+                (50, 50),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0, 0, 255),
+                2,
+            )
 
         return frame
 
     def get_next_annotated_frame_i(self):
         if len(self.annotations.keys()) > 0:
-
             frame_i = list(self.annotations.keys())[self.current_ret_annotated]
             self.current_ret_annotated += 1
             if self.current_ret_annotated >= len(self.annotations.keys()):
@@ -89,10 +88,17 @@ class FrameGetter:
             return int(frame_i)
         else:
             return 0
+
     def set_annotation(self, annotations):
         self.annotations = annotations
+
+    def add_annotation(self, frame_i, annotations):
+        if str(frame_i) not in self.annotations.keys():
+            self.annotations[str(frame_i)] = []
+        for annotation in annotations:
+            self.annotations[str(frame_i)].append(annotation)
 
     def clear_annotations(self):
         self.annotations = {}
         self.current_ret_annotated = 0
-        self.nb_results=0
+        self.nb_results = 0
