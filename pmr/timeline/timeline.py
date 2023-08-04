@@ -67,9 +67,10 @@ class Timeline:
                 self.frame_getter.get_next_annotated_frame_i()
             )
 
+    # TODO handle this better
+    # maybe no need to re run ocr
+    # Temporary functions to test feature
     def region_ocr(self):
-        # TODO handle this better
-        # maybe no need to re run ocr
         frame = self.frame_getter.get_frame(self.time_bar.current_frame_i).swapaxes(
             0, 1
         )
