@@ -35,7 +35,7 @@ class Background:
 
         self.images_queue = Queue()
         self.results_queue = Queue()
-        self.nb_workers = 1
+        self.nb_workers = 2
         self.workers = []
         self.pids = []
         for i in range(self.nb_workers):
@@ -50,14 +50,15 @@ class Background:
         # Infinite worker
 
         # ocr = EasyOCR()
-        ocr = Tesseract(resize_factor=1, conf_threshold=50)
+        # TODO tune resize factor (1 is ok, 2 is better but slower)
+        ocr = Tesseract(resize_factor=2, conf_threshold=50)
 
         signal.signal(signal.SIGINT, self.stop_process)
         while True:
             start = time.time()
             data = self.images_queue.get()
-            print("Worker", os.getpid(), "waited for", time.time() - start, "seconds")
-            print("Worker", os.getpid(), "starting job")
+            # print("Worker", os.getpid(), "waited for", time.time() - start, "seconds")
+            # print("Worker", os.getpid(), "starting job")
             job_start = time.time()
 
             frame_i = data["frame_i"]
@@ -77,15 +78,15 @@ class Background:
                 }
             )
 
-            cv2.imwrite(str(frame_i) + ".png", utils.draw_results(results, im))
+            # cv2.imwrite(str(frame_i) + ".png", utils.draw_results(results, im))
 
-            print(
-                "Worker",
-                os.getpid(),
-                "finished job in",
-                time.time() - job_start,
-                "seconds",
-            )
+            # print(
+            #     "Worker",
+            #     os.getpid(),
+            #     "finished job in",
+            #     time.time() - job_start,
+            #     "seconds",
+            # )
 
     def stop_rec(self, sig, frame):
         # self.rec.stop()
@@ -105,7 +106,7 @@ class Background:
             window_title = utils.get_active_window()
 
             # Get screenshot and add it to recorder
-            print("time since last screenshot", time.time() - last_sc)
+            # print("time since last screenshot", time.time() - last_sc)
             im = np.array(self.sct.grab(self.sct.monitors[1]))
             last_sc = time.time()
             im = im[:, :, :-1]
@@ -149,15 +150,12 @@ class Background:
                     self.metadata[str(result["frame_i"])]["bbs"] = bbs
                     self.metadata[str(result["frame_i"])]["text"] = text
 
-                    print("=========")
-                    print("UPDATING DB ...")
                     add_db_start = time.time()
                     self.collection.add(
                         documents=text,
                         ids=ids,
                     )
                     print("ADD TO DB TIME:", time.time() - add_db_start)
-                    print("=========")
 
                 except Exception:
                     getting = False

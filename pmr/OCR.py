@@ -15,7 +15,7 @@ class OCR:
         raise NotImplementedError
 
     def preprocess(self, im):
-        im = cv2.resize(im, (0, 0), fx=1 / self.rf, fy=1 / self.rf)
+        im = cv2.resize(im, (0, 0), fx=self.rf, fy=self.rf)
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
         if gray.mean() > 127:
             thr = cv2.adaptiveThreshold(
@@ -57,10 +57,10 @@ class EasyOCR(OCR):
             conf = result[2]
             if conf < self.conf_threshold:
                 continue
-            x = bb[0][0] * self.rf
-            y = bb[0][1] * self.rf
-            w = (bb[2][0] - bb[0][0]) * self.rf
-            h = (bb[2][1] - bb[0][1]) * self.rf
+            x = bb[0][0] // self.rf
+            y = bb[0][1] // self.rf
+            w = (bb[2][0] - bb[0][0]) // self.rf
+            h = (bb[2][1] - bb[0][1]) // self.rf
             entry = {
                 "x": int(x),
                 "y": int(y),
@@ -122,10 +122,10 @@ class Tesseract(OCR):
 
             text = results["text"][i]
             entry = {
-                "x": x * self.rf,
-                "y": y * self.rf,
-                "w": w * self.rf,
-                "h": h * self.rf,
+                "x": x // self.rf,
+                "y": y // self.rf,
+                "w": w // self.rf,
+                "h": h // self.rf,
                 "text": text,
                 "conf": conf,
             }
@@ -154,9 +154,9 @@ class Tesseract(OCR):
                     max(py2, ey2) - paragraphs[results["block_num"][i]]["y"]
                 )
         # TODO tune this tol, make something better ? no overlapping bbs ?
-        # With tol very high, it takes pretty much the whole screen. 
+        # With tol very high, it takes pretty much the whole screen.
         # Easy to test with 1 document = 1 screenshot
-        return utils.make_paragraphs(list(paragraphs.values()), tol=5000) 
+        return utils.make_paragraphs(list(paragraphs.values()), tol=5000)
 
     # TODO replace tolerances in pixels by tolerances in percentage of the image size
     def merge_boxes(self, res, x_tol=50, y_tol=20):
