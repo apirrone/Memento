@@ -36,6 +36,7 @@ class FrameGetter:
         if str(frame_i) in self.annotations.keys():
             entries = self.annotations[str(frame_i)]
             for entry in entries:
+                distance = entry["distance"]
                 bb = entry["bb"]
                 x = int(bb["x"])
                 y = int(bb["y"])
@@ -225,6 +226,8 @@ class SearchBar:
         self.frame_getter.set_annotation(results)
         self.found = True
 
+    # TODO clarify this function
+    # Weird behavious between enter and ctrl+f
     def event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.mod & pygame.KMOD_CTRL and event.key == pygame.K_f:
