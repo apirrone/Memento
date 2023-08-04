@@ -8,3 +8,4 @@ pmr/__pycache__/*
 pmr.egg-info/*
 *.h264
 *.mp4
+pmr/timeline/__pycache__/*

@@ -1,5 +1,7 @@
 import pygame
-from pmr.timeline_utils import FrameGetter, TimeBar, SearchBar
+from pmr.timeline.frame_getter import FrameGetter
+from pmr.timeline.time_bar import TimeBar
+from pmr.timeline.search_bar import SearchBar
 import pmr.utils as utils
 
 
@@ -7,6 +9,10 @@ import pmr.utils as utils
 class Timeline:
     def __init__(self):
         self.window_size = utils.RESOLUTION
+        pygame.init()
+        pygame.key.set_repeat(500, 50)
+        self.screen = pygame.display.set_mode(self.window_size, pygame.SRCALPHA)
+        self.clock = pygame.time.Clock()
         self.frame_getter = FrameGetter(self.window_size)
         self.time_bar = TimeBar(self.frame_getter)
         self.search_bar = SearchBar(self.frame_getter)
@@ -38,10 +44,6 @@ class Timeline:
             self.current_frame_i = self.frame_getter.get_next_annotated_frame_i()
 
     def run(self):
-        pygame.init()
-        pygame.key.set_repeat(500, 50)
-        self.screen = pygame.display.set_mode(self.window_size, pygame.RESIZABLE)
-        self.clock = pygame.time.Clock()
         while True:
             self.screen.fill((255, 255, 255))
             self.draw_current_frame()

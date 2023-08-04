@@ -1,7 +1,6 @@
 from pmr.background import Background
-import pmr.background
-import pmr.query_db
-import pmr.timeline
+from pmr.query_db import Query
+from pmr.timeline.timeline import Timeline
 
 
 def bg():
@@ -10,12 +9,12 @@ def bg():
 
 
 def query():
-    q = pmr.query_db.Query()
+    q = Query()
     # i = input("query : ")
     i = "luxonis"
     print(q.query_db(i))
 
 
 def tl():
-    t = pmr.timeline.Timeline()
+    t = Timeline()
     t.run()
