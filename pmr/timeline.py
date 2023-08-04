@@ -1,11 +1,12 @@
 import pygame
 from pmr.timeline_utils import FrameGetter, TimeBar, SearchBar
+import pmr.utils as utils
 
 
 # TODO auto scroll the time bar, because when too long the zones become too small and the cursor too
 class Timeline:
     def __init__(self):
-        self.window_size = (1920, 1080)
+        self.window_size = utils.RESOLUTION
         self.frame_getter = FrameGetter(self.window_size)
         self.time_bar = TimeBar(self.frame_getter)
         self.search_bar = SearchBar(self.frame_getter)

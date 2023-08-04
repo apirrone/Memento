@@ -5,6 +5,7 @@ import time
 import asyncio
 import os
 import cv2
+import numpy as np
 
 FPS = 1
 SECONDS_PER_REC = 10
@@ -155,10 +156,10 @@ def in_rect(rect, pos):
 
 def draw_results(res, image):
     for entry in res:
-        x = entry["x"]
-        y = entry["y"]
-        w = entry["w"]
-        h = entry["h"]
+        x = int(entry["x"])
+        y = int(entry["y"])
+        w = int(entry["w"])
+        h = int(entry["h"])
         text = entry["text"]
 
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -167,3 +168,54 @@ def draw_results(res, image):
         )
 
     return image
+
+
+def bb_center(entry):
+    x = int(entry["x"])
+    y = int(entry["y"])
+    w = int(entry["w"])
+    h = int(entry["h"])
+
+    return np.array([x + w / 2, y + h / 2])
+
+
+def init_paragraph():
+    p = {}
+    p["text"] = ""
+    p["x"] = 100000
+    p["y"] = 100000
+    p["w"] = 0
+    p["h"] = 0
+    p["center"] = bb_center(p)
+    return p
+
+
+def update_paragraph(p, entry):
+    p["text"] += " " + entry["text"]
+    p["x"] = min(p["x"], entry["x"])
+    p["y"] = min(p["y"], entry["y"])
+    entry_x2 = entry["x"] + entry["w"]
+    entry_y2 = entry["y"] + entry["h"]
+    p_x2 = p["x"] + p["w"]
+    p_y2 = p["y"] + p["h"]
+
+    p["w"] = max(p_x2, entry_x2) - p["x"]
+    p["h"] = max(p_y2, entry_y2) - p["y"]
+    p["center"] = bb_center(p)
+    return p
+
+
+def make_paragraphs(res, tol=500):
+    paragraphs = []
+    for entry in res[1:]:
+        center = bb_center(entry)
+        merged = False
+        for i, p in enumerate(paragraphs):
+            if np.linalg.norm(p["center"] - center) < tol:
+                paragraphs[i] = update_paragraph(p, entry)
+                merged = True
+                break
+        if not merged:
+            paragraphs.append(init_paragraph())
+            paragraphs[-1] = update_paragraph(paragraphs[-1], entry)
+    return paragraphs

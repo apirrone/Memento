@@ -50,7 +50,7 @@ class Background:
         # Infinite worker
 
         # ocr = EasyOCR()
-        ocr = Tesseract()
+        ocr = Tesseract(resize_factor=1, conf_threshold=50)
 
         signal.signal(signal.SIGINT, self.stop_process)
         while True:
@@ -77,7 +77,8 @@ class Background:
                 }
             )
 
-            # cv2.imwrite(str(i) + ".png", utils.draw_results(results, im))
+            cv2.imwrite(str(frame_i) + ".png", utils.draw_results(results, im))
+
             print(
                 "Worker",
                 os.getpid(),
@@ -136,6 +137,7 @@ class Background:
                     result = self.results_queue.get(False)
                     all_results.append(result)
                     bbs = []
+                    text = []
                     for i in range(len(result["results"])):
                         bb = {}
                         bb["x"] = result["results"][i]["x"]
@@ -143,8 +145,10 @@ class Background:
                         bb["w"] = result["results"][i]["w"]
                         bb["h"] = result["results"][i]["h"]
                         bbs.append(bb)
+                        text.append(result["results"][i]["text"])
 
                     self.metadata[str(result["frame_i"])]["bbs"] = bbs
+                    self.metadata[str(result["frame_i"])]["text"] = text
                 except Exception:
                     getting = False
 
@@ -179,5 +183,7 @@ class Background:
                     documents=texts,
                     ids=ids,
                 )
-                print("Add to db time :", time.time() - add_db_start)
+                print("=========")
+                print("ADD TO DB TIME:", time.time() - add_db_start)
+                print("=========")
                 all_results = []

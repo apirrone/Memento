@@ -37,16 +37,26 @@ class FrameGetter:
             entries = self.annotations[str(frame_i)]
             for entry in entries:
                 bb = entry["bb"]
-                x = int(bb["x"]) // 2
-                y = int(bb["y"]) // 2
-                w = int(bb["w"]) // 2
-                h = int(bb["h"]) // 2
+                x = int(bb["x"])
+                y = int(bb["y"])
+                w = int(bb["w"])
+                h = int(bb["h"])
+                text = entry["text"]
                 frame = cv2.rectangle(
                     frame,
                     (x, y),
                     (x + w, y + h),
                     (0, 0, 255),
                     5,
+                )
+                frame = cv2.putText(
+                    frame,
+                    text,
+                    (x, y - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1,
+                    (0, 0, 255),
+                    2,
                 )
         return frame
 

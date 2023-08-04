@@ -107,8 +107,7 @@ class Tesseract(OCR):
             lang=self.langs,
             config=custom_oem_psm_config,
         )
-
-        res = []
+        paragraphs = {}
         for i in range(len(results["text"])):
             conf = int(results["conf"][i])
             if conf < self.conf_threshold:
@@ -128,9 +127,34 @@ class Tesseract(OCR):
                 "text": text,
                 "conf": conf,
             }
-            res.append(entry)
+            if results["block_num"][i] not in paragraphs:
+                paragraphs[results["block_num"][i]] = entry
+            else:
+                px = paragraphs[results["block_num"][i]]["x"]
+                py = paragraphs[results["block_num"][i]]["y"]
+                px2 = px + paragraphs[results["block_num"][i]]["w"]
+                py2 = py + paragraphs[results["block_num"][i]]["h"]
+                pw = paragraphs[results["block_num"][i]]["w"]
+                ph = paragraphs[results["block_num"][i]]["h"]
 
-        return self.merge_boxes(res)  # make lines
+                ex = entry["x"]
+                ey = entry["y"]
+                ew = entry["w"]
+                eh = entry["h"]
+                ex2 = ex + ew
+                ey2 = ey + eh
+
+                paragraphs[results["block_num"][i]]["text"] += " " + entry["text"]
+                paragraphs[results["block_num"][i]]["x"] = min(px, ex)
+                paragraphs[results["block_num"][i]]["y"] = min(py, ey)
+                paragraphs[results["block_num"][i]]["w"] = (
+                    max(px2, ex2) - paragraphs[results["block_num"][i]]["x"]
+                )
+                paragraphs[results["block_num"][i]]["h"] = (
+                    max(py2, ey2) - paragraphs[results["block_num"][i]]["y"]
+                )
+
+        return utils.make_paragraphs(list(paragraphs.values()), tol=200)
 
     # TODO replace tolerances in pixels by tolerances in percentage of the image size
     def merge_boxes(self, res, x_tol=50, y_tol=20):
