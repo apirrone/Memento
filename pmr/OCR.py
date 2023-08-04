@@ -107,6 +107,8 @@ class Tesseract(OCR):
             lang=self.langs,
             config=custom_oem_psm_config,
         )
+
+        # TODO check if I can do better by using the data returned by tesseract (page, block, paragraph hierarchy)
         paragraphs = {}
         for i in range(len(results["text"])):
             conf = int(results["conf"][i])
@@ -134,8 +136,6 @@ class Tesseract(OCR):
                 py = paragraphs[results["block_num"][i]]["y"]
                 px2 = px + paragraphs[results["block_num"][i]]["w"]
                 py2 = py + paragraphs[results["block_num"][i]]["h"]
-                pw = paragraphs[results["block_num"][i]]["w"]
-                ph = paragraphs[results["block_num"][i]]["h"]
 
                 ex = entry["x"]
                 ey = entry["y"]
@@ -153,7 +153,7 @@ class Tesseract(OCR):
                 paragraphs[results["block_num"][i]]["h"] = (
                     max(py2, ey2) - paragraphs[results["block_num"][i]]["y"]
                 )
-
+        # TODO tune this tol, make something better ? no overlapping bbs ?
         return utils.make_paragraphs(list(paragraphs.values()), tol=200)
 
     # TODO replace tolerances in pixels by tolerances in percentage of the image size
