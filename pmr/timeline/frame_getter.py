@@ -46,15 +46,15 @@ class FrameGetter:
                     (0, 0, 255),
                     5,
                 )
-                frame = cv2.putText(
-                    frame,
-                    text,
-                    (x, y - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1,
-                    (0, 0, 255),
-                    2,
-                )
+                # frame = cv2.putText(
+                #     frame,
+                #     text,
+                #     (x, y - 10),
+                #     cv2.FONT_HERSHEY_SIMPLEX,
+                #     1,
+                #     (0, 0, 255),
+                #     2,
+                # )
         return frame
 
     def get_next_annotated_frame_i(self):
@@ -66,6 +66,12 @@ class FrameGetter:
 
     def set_annotation(self, annotations):
         self.annotations = annotations
+
+    def add_annotation(self, frame_i, annotations):
+        if str(frame_i) not in self.annotations.keys():
+            self.annotations[str(frame_i)] = []
+        for annotation in annotations:
+            self.annotations[str(frame_i)].append(annotation)
 
     def clear_annotations(self):
         self.annotations = {}
