@@ -20,6 +20,7 @@ class FrameGetter:
             * utils.FPS
             * utils.SECONDS_PER_REC
         )
+        self.nb_results=0
 
     def get_frame(self, i, raw=False):
         im = self.readers_cache.get_frame(min(self.nb_frames - 1, i))
@@ -55,6 +56,27 @@ class FrameGetter:
                     (0, 0, 255),
                     2,
                 )
+            frame = cv2.putText(
+                    frame,
+                    f'{self.nb_results} results',
+                    (50, 50),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1,
+                    (0, 0, 255),
+                    2,
+                )
+
+        elif self.nb_results==-1:
+            frame = cv2.putText(
+                    frame,
+                    "No result",
+                    (50, 50),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1,
+                    (0, 0, 255),
+                    2,
+                )
+
         return frame
 
     def get_next_annotated_frame_i(self):
@@ -73,3 +95,4 @@ class FrameGetter:
     def clear_annotations(self):
         self.annotations = {}
         self.current_ret_annotated = 0
+        self.nb_results=0
