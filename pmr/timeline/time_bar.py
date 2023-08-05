@@ -12,6 +12,7 @@ class TimeBar:
         self.frame_getter = frame_getter
         self.nb_frames = self.frame_getter.nb_frames
         self.metadata = self.frame_getter.metadata
+        self.show_bar = True
 
         # Actual graphical window size
         ws = self.frame_getter.window_size
@@ -119,7 +120,7 @@ class TimeBar:
             middle = (start + end) / 2
             seg_x = self.x + (start / self.tws) * self.w
             seg_w = (end - start) / self.tws * self.w
-            
+
             pygame.draw.rect(
                 screen,
                 self.apps[app]["color"],
@@ -204,8 +205,15 @@ class TimeBar:
             5,
         )
 
+    def show(self):
+        self.show_bar = True
+
+    def hide(self):
+        self.show_bar = False
+
     def draw(self, screen, mouse_pos):
-        self.draw_preview(screen, mouse_pos)
-        self.draw_bar(screen, mouse_pos)
-        self.draw_cursor(screen)
-        self.draw_time(screen, mouse_pos)
+        if self.show_bar:
+            self.draw_preview(screen, mouse_pos)
+            self.draw_bar(screen, mouse_pos)
+            self.draw_cursor(screen)
+            self.draw_time(screen, mouse_pos)

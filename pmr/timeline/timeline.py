@@ -54,8 +54,10 @@ class Timeline:
                         self.region_selector.reset()
                     else:
                         self.region_selector.start(event.pos)
+                        self.time_bar.hide()
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
+                    self.time_bar.show()
                     self.region_selector.end(event.pos)
                     self.region_ocr()
                     if self.search_bar.active:
