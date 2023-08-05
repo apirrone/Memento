@@ -65,6 +65,7 @@ class TimeBar:
                 self.apps[app]["icon_small"] = icon_small
                 self.apps[app]["icon_big"] = icon_big
 
+    # TODO adjust time bar so that the cursor is visible when jumping that way
     def set_current_frame_i(self, frame_i):
         # nb_moves = frame_i - self.current_frame_i
         # dir = 1 if nb_moves > 0 else -1
