@@ -69,17 +69,17 @@ class SearchBar:
         self.frame_getter.set_annotation(results)
         if len(results) > 0:
             self.found = True
-            self.frame_getter.nb_results=len(results)
+            self.frame_getter.nb_results = len(results)
         else:
             self.found = False
-            self.frame_getter.nb_results=-1
-
-
+            self.frame_getter.nb_results = -1
 
     def event(self, event):
         ret = False
         if event.type == pygame.KEYDOWN:
             if event.mod & pygame.KMOD_CTRL and event.key == pygame.K_f:
+                if self.active:
+                    self.input = ""
                 self.activate()
                 self.input_changed = False
             elif event.key == pygame.K_ESCAPE:

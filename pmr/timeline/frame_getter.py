@@ -4,6 +4,7 @@ from glob import glob
 import pmr.utils as utils
 from pmr.utils import ReadersCache
 import cv2
+import numpy as np
 
 
 class FrameGetter:
@@ -40,22 +41,24 @@ class FrameGetter:
                 w = int(bb["w"])
                 h = int(bb["h"])
                 text = entry["text"]
-                frame = cv2.rectangle(
-                    frame,
-                    (x, y),
-                    (x + w, y + h),
-                    (0, 0, 255),
-                    5,
-                )
-                frame = cv2.putText(
-                    frame,
-                    text,
-                    (x, y - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1,
-                    (0, 0, 255),
-                    2,
-                )
+
+                red_rect = np.ones((h, w, 3), dtype=np.uint8)
+                red_rect[:, :, 2] = 0
+                red_rect *= 200
+                sub_img = frame[y : y + h, x : x + w]
+                res = cv2.addWeighted(sub_img, 0.5, red_rect, 0.5, 1.0)
+                if res is None:
+                    continue
+                frame[y : y + h, x : x + w] = res
+                # frame = cv2.putText(
+                #     frame,
+                #     text,
+                #     (x, y - 10),
+                #     cv2.FONT_HERSHEY_SIMPLEX,
+                #     1,
+                #     (0, 0, 255),
+                #     2,
+                # )
             frame = cv2.putText(
                 frame,
                 f"{self.nb_results} results",
@@ -92,11 +95,19 @@ class FrameGetter:
     def set_annotation(self, annotations):
         self.annotations = annotations
 
+    def get_annotations_text(self):
+        text = ""
+        for entries in self.annotations.values():
+            for entry in entries:
+                text += entry["text"] + "\n"
+        return text
+
     def add_annotation(self, frame_i, annotations):
         if str(frame_i) not in self.annotations.keys():
             self.annotations[str(frame_i)] = []
         for annotation in annotations:
             self.annotations[str(frame_i)].append(annotation)
+            self.nb_results += 1
 
     def clear_annotations(self):
         self.annotations = {}
