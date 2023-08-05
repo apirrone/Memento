@@ -66,9 +66,13 @@ class TimeBar:
                 self.apps[app]["icon_big"] = icon_big
 
     def set_current_frame_i(self, frame_i):
-        nb_moves = frame_i - self.current_frame_i
-        self.move_cursor(nb_moves)
-        # self.current_frame_i = frame_i
+        # nb_moves = frame_i - self.current_frame_i
+        # dir = 1 if nb_moves > 0 else -1
+        # print(self.current_frame_i, frame_i, nb_moves)
+        # for _ in range(nb_moves):
+        #     self.move_cursor(dir)
+        # # self.move_cursor(nb_moves)
+        self.current_frame_i = frame_i
 
     def move_cursor(self, delta):
         self.current_frame_i = max(
