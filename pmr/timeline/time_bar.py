@@ -65,7 +65,9 @@ class TimeBar:
                 self.apps[app]["icon_big"] = icon_big
 
     def set_current_frame_i(self, frame_i):
-        self.current_frame_i = frame_i
+        nb_moves = frame_i - self.current_frame_i
+        self.move_cursor(nb_moves)
+        # self.current_frame_i = frame_i
 
     def move_cursor(self, delta):
         self.current_frame_i = max(
@@ -117,7 +119,7 @@ class TimeBar:
             middle = (start + end) / 2
             seg_x = self.x + (start / self.tws) * self.w
             seg_w = (end - start) / self.tws * self.w
-
+            
             pygame.draw.rect(
                 screen,
                 self.apps[app]["color"],

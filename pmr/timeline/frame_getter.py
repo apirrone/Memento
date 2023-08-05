@@ -109,6 +109,9 @@ class FrameGetter:
             self.annotations[str(frame_i)].append(annotation)
             self.nb_results += 1
 
+    def is_annotated(self, frame_i):
+        return str(frame_i) in self.annotations.keys()
+
     def clear_annotations(self):
         self.annotations = {}
         self.current_ret_annotated = 0
