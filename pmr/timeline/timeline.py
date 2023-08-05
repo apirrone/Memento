@@ -2,9 +2,12 @@ import pygame
 from pmr.timeline.frame_getter import FrameGetter
 from pmr.timeline.time_bar import TimeBar
 from pmr.timeline.search_bar import SearchBar
+from pmr.timeline.region_selector import RegionSelector
 import pmr.utils as utils
 from pmr.OCR import Tesseract
 import cv2
+import pyperclip
+from pmr.timeline.ui import PopUpManager
 
 
 class Timeline:
@@ -22,8 +25,9 @@ class Timeline:
         self.frame_getter = FrameGetter(self.window_size)
         self.time_bar = TimeBar(self.frame_getter)
         self.search_bar = SearchBar(self.frame_getter)
-        self.region_selector = utils.RegionSelector()
+        self.region_selector = RegionSelector()
         self.ocr = Tesseract(resize_factor=5, conf_threshold=50)
+        self.popup_manager = PopUpManager()
         self.t = 0
         self.dt = 0
 
@@ -40,6 +44,7 @@ class Timeline:
                 # TODO keep that ? navigate fast with scroll and use arrow keys to navigate frame per frame ?
                 self.time_bar.move_cursor((event.x - event.y) * 2)
                 self.region_selector.reset()
+                self.frame_getter.clear_annotations()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if self.time_bar.hover(event.pos):
@@ -49,10 +54,19 @@ class Timeline:
                         self.region_selector.reset()
                     else:
                         self.region_selector.start(event.pos)
+                        self.time_bar.hide()
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
+                    self.time_bar.show()
                     self.region_selector.end(event.pos)
                     self.region_ocr()
+                    if self.search_bar.active:
+                        continue
+                    self.popup_manager.add_popup(
+                        "Ctrl + C to copy text",
+                        (50, 70),
+                        2,
+                    )
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     self.time_bar.move_cursor(-1)
@@ -62,7 +76,14 @@ class Timeline:
                     self.region_selector.reset()
                 if event.key == pygame.K_RETURN:
                     pass
-
+                if event.mod & pygame.KMOD_CTRL and event.key == pygame.K_c:
+                    text = self.frame_getter.get_annotations_text()
+                    pyperclip.copy(text)
+                    self.popup_manager.add_popup(
+                        "Text copied to clipboard",
+                        (50, 70),
+                        2,
+                    )
         if found:
             self.time_bar.set_current_frame_i(
                 self.frame_getter.get_next_annotated_frame_i()
@@ -79,11 +100,7 @@ class Timeline:
         region = self.region_selector.get_region()
         if region is None:
             return
-        region_area = (
-            region[2] - region[0]
-        ) * (
-            region[3] - region[1]
-        ) 
+        region_area = (region[2] - region[0]) * (region[3] - region[1])
         if region_area < 1:
             return
         crop = frame[region[1] : region[3], region[0] : region[2]]
@@ -100,6 +117,7 @@ class Timeline:
                 "text": r["text"],
             }
             res.append(entry)
+
         self.frame_getter.clear_annotations()
         self.frame_getter.add_annotation(self.time_bar.current_frame_i, res)
 
@@ -123,6 +141,7 @@ class Timeline:
             self.search_bar.draw(self.screen)
             self.handle_inputs()
             self.handle_region_query()
+            self.popup_manager.tick(self.screen)
 
             self.region_selector.draw(self.screen, pygame.mouse.get_pos())
             pygame.display.update()

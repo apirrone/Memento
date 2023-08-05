@@ -12,6 +12,7 @@ class TimeBar:
         self.frame_getter = frame_getter
         self.nb_frames = self.frame_getter.nb_frames
         self.metadata = self.frame_getter.metadata
+        self.show_bar = True
 
         # Actual graphical window size
         ws = self.frame_getter.window_size
@@ -64,7 +65,14 @@ class TimeBar:
                 self.apps[app]["icon_small"] = icon_small
                 self.apps[app]["icon_big"] = icon_big
 
+    # TODO adjust time bar so that the cursor is visible when jumping that way
     def set_current_frame_i(self, frame_i):
+        # nb_moves = frame_i - self.current_frame_i
+        # dir = 1 if nb_moves > 0 else -1
+        # print(self.current_frame_i, frame_i, nb_moves)
+        # for _ in range(nb_moves):
+        #     self.move_cursor(dir)
+        # # self.move_cursor(nb_moves)
         self.current_frame_i = frame_i
 
     def move_cursor(self, delta):
@@ -202,8 +210,15 @@ class TimeBar:
             5,
         )
 
+    def show(self):
+        self.show_bar = True
+
+    def hide(self):
+        self.show_bar = False
+
     def draw(self, screen, mouse_pos):
-        self.draw_preview(screen, mouse_pos)
-        self.draw_bar(screen, mouse_pos)
-        self.draw_cursor(screen)
-        self.draw_time(screen, mouse_pos)
+        if self.show_bar:
+            self.draw_preview(screen, mouse_pos)
+            self.draw_bar(screen, mouse_pos)
+            self.draw_cursor(screen)
+            self.draw_time(screen, mouse_pos)
