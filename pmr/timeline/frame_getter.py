@@ -1,8 +1,7 @@
 import os
-import json
 from glob import glob
 import pmr.utils as utils
-from pmr.utils import ReadersCache
+from pmr.caching import ReadersCache, MetadataCache
 import cv2
 import numpy as np
 
@@ -13,7 +12,7 @@ class FrameGetter:
 
         self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
         self.readers_cache = ReadersCache(self.cache_path)
-        self.metadata = json.load(open(os.path.join(self.cache_path, "metadata.json")))
+        self.metadata_cache = MetadataCache(self.cache_path)
         self.annotations = {}
         self.current_ret_annotated = 0
         self.nb_frames = int(
@@ -32,7 +31,6 @@ class FrameGetter:
     def toggle_debug_mode(self):
         self.debug_mode = not self.debug_mode
         self.clear_annotations()
-        self.current_displayed_frame = None
 
     def get_frame(self, frame_i):
         im = self.current_displayed_frame
@@ -54,7 +52,7 @@ class FrameGetter:
     def process_debug(self, frame_i):
         if self.debug_mode:
             self.clear_annotations()
-            frame_metadata = self.metadata[str(frame_i)]
+            frame_metadata = self.metadata_cache.get_frame_metadata(frame_i)
             if "bbs" in frame_metadata:
                 res = []
                 for i in range(len(frame_metadata["bbs"])):
@@ -146,6 +144,7 @@ class FrameGetter:
     def add_annotation(self, frame_i, annotations):
         if str(frame_i) not in self.annotations.keys():
             self.annotations[str(frame_i)] = []
+
         for annotation in annotations:
             self.annotations[str(frame_i)].append(annotation)
             self.nb_results += 1
@@ -158,3 +157,4 @@ class FrameGetter:
         self.annotations = {}
         self.current_ret_annotated = 0
         self.nb_results = 0
+        self.current_displayed_frame = None

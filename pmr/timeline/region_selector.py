@@ -1,4 +1,6 @@
 import pygame
+from pmr.OCR import Tesseract
+import cv2
 
 
 class RegionSelector:
@@ -6,6 +8,7 @@ class RegionSelector:
         self.s = None
         self.e = None
         self.ongoing = False
+        self.ocr = Tesseract(resize_factor=3, conf_threshold=50)
 
     def start(self, mouse_pos):
         self.s = mouse_pos
@@ -44,3 +47,28 @@ class RegionSelector:
                 ),
                 2,
             )
+
+    def region_ocr(self, frame):
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        region = self.get_region()
+        if region is None:
+            return None
+        region_area = (region[2] - region[0]) * (region[3] - region[1])
+        if region_area < 1:
+            return None
+        crop = frame[region[1] : region[3], region[0] : region[2]]
+        results = self.ocr.process_image(crop)
+        res = []
+        for r in results:
+            entry = {
+                "bb": {
+                    "x": r["x"] + region[0],
+                    "y": r["y"] + region[1],
+                    "w": r["w"],
+                    "h": r["h"],
+                },
+                "text": r["text"],
+            }
+            res.append(entry)
+
+        return res

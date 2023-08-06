@@ -3,10 +3,8 @@ import av
 import fractions
 import time
 import asyncio
-import os
 import cv2
 import numpy as np
-import pygame
 
 FPS = 0.5
 SECONDS_PER_REC = 10
@@ -16,8 +14,8 @@ VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 # RESOLUTION = (2560, 1440)
 # RESOLUTION = (1280, 720)
 RESOLUTION = (1920, 1080)
-TIME_WINDOW_SIZE = int(10 * FPS * SECONDS_PER_REC)
-FRAME_CACHE_SIZE = 20
+MAX_TWS = 100 * FPS * SECONDS_PER_REC
+FRAME_CACHE_SIZE = int((MAX_TWS / FPS / SECONDS_PER_REC))
 
 
 def get_active_window():
@@ -92,64 +90,6 @@ class Recorder:
         packet = self.stream.encode(None)
         self.output.mux(packet)
         self.output.close()
-
-
-class Reader:
-    def __init__(self, filename, offset=0):
-        self.container = av.open(filename)
-        self.stream = self.container.streams.video[0]
-        self.frames = []
-        for i, frame in enumerate(self.container.decode(self.stream)):
-            self.frames.append(frame)
-        self.offset = offset
-
-    # TODO there is a bug here, the found frame does not correspond to the ocr data
-    def get_frame(self, frame_i):
-        if (frame_i - self.offset) < len(self.frames):
-            return self.frames[frame_i - self.offset].to_ndarray(format="bgr24")
-        else:
-            return None
-
-
-# TODO remove from cache (smartly)
-class ReadersCache:
-    def __init__(self, cache_path):
-        self.readers = {}
-        self.readers_ids = []  # in order to know the oldest reader
-        self.cache_path = cache_path
-        self.cache_size = FRAME_CACHE_SIZE
-
-    def select_video(self, frame_id):
-        return int(frame_id // (FPS * SECONDS_PER_REC))
-
-    def get_reader(self, frame_id):
-        video_id = self.select_video(frame_id)
-        offset = int(video_id * (FPS * SECONDS_PER_REC))
-        if video_id not in self.readers:  # Caching reader
-            start = time.time()
-            self.readers[video_id] = Reader(
-                os.path.join(self.cache_path, str(video_id) + ".mp4"), offset=offset
-            )
-            self.readers_ids.append(video_id)
-            print(
-                "Caching reader",
-                video_id,
-                "at",
-                offset,
-                "offset frames took",
-                time.time() - start,
-                "seconds",
-            )
-            if len(self.readers) > self.cache_size:
-                dumped_id = self.readers_ids[0]
-                self.readers_ids = self.readers_ids[1:]
-                print("Dumping reader with id", dumped_id, "from cache")
-                del self.readers[dumped_id]
-        return self.readers[video_id]
-
-    # Shorthand
-    def get_frame(self, frame_id):
-        return self.get_reader(frame_id).get_frame(frame_id)
 
 
 def in_rect(rect, pos):

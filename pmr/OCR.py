@@ -17,15 +17,21 @@ class OCR:
     def preprocess(self, im):
         im = cv2.resize(im, (0, 0), fx=self.rf, fy=self.rf)
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-        if gray.mean() > 127:
-            thr = cv2.adaptiveThreshold(
-                gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 57, 1.0
-            )
 
-        else:
-            thr = cv2.adaptiveThreshold(
-                gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 57, 1.0
-            )
+        # if gray.mean() > 127:
+        #     thr = cv2.adaptiveThreshold(
+        #         gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 57, 1.0
+        #     )
+
+        # else:
+        #     thr = cv2.adaptiveThreshold(
+        #         gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 57, 1.0
+        #     )
+
+        thr2=cv2.bitwise_not(gray)
+        thr2 = cv2.adaptiveThreshold(thr2,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
+
+        thr=thr2
         cl = cv2.cvtColor(thr, cv2.COLOR_GRAY2BGR)
         return cl, thr
 

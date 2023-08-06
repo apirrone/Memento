@@ -12,26 +12,50 @@ import multiprocessing
 from multiprocessing import Queue
 import signal
 from pmr.OCR import Tesseract
+from pmr.caching import MetadataCache
 
 
 class Background:
     def __init__(self):
         self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
+
+        if os.path.exists(os.path.join(self.cache_path, "0.json")):
+            print("EXISTING PMR CACHE FOUND")
+            print("Continue this recording or erase and start over ? ")
+            print("1. Continue")
+            print("2. Erase and start over")
+            choice = input("Choice: ")
+            while choice not in ["1", "2"]:
+                print("Please choose 1 or 2")
+                choice = input("Choice: ")
+
+            if choice == "1":
+                self.nb_rec = len(
+                    [f for f in os.listdir(self.cache_path) if f.endswith(".mp4")]
+                )
+                self.frame_i = int(self.nb_rec * utils.FPS * utils.SECONDS_PER_REC)
+            else:
+                os.system("rm -rf " + self.cache_path)
+                self.nb_rec = 0
+                self.frame_i = 0
+        else:
+            self.nb_rec = 0
+            self.frame_i = 0
+
+        self.metadata_cache = MetadataCache(self.cache_path)
+
         os.makedirs(self.cache_path, exist_ok=True)
         self.client = chromadb.PersistentClient(
             path=os.path.join(self.cache_path, "pmr_db")
         )
         self.collection = self.client.get_or_create_collection(name="pmr_db")
         self.sct = mss.mss()
-        self.metadata = {}
-        self.nb_rec = 0
         self.rec = utils.Recorder(
             os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
         )
         self.rec.start()
 
         self.running = True
-        self.frame_i = 0
 
         self.images_queue = Queue()
         self.results_queue = Queue()
@@ -126,10 +150,13 @@ class Background:
             )
             prev_im = im
 
-            self.metadata[str(self.frame_i)] = {
-                "window_title": window_title,
-                "time": t,
-            }
+            self.metadata_cache.write(
+                self.frame_i,
+                {
+                    "window_title": window_title,
+                    "time": t,
+                },
+            )
 
             # deque results
             getting = True
@@ -147,8 +174,12 @@ class Background:
                         text.append(result["results"][i]["text"])
                         bbs.append(bb)
 
-                    self.metadata[str(result["frame_i"])]["bbs"] = bbs
-                    self.metadata[str(result["frame_i"])]["text"] = text
+                    frame_metadata = self.metadata_cache.get_frame_metadata(
+                        result["frame_i"]
+                    )
+                    frame_metadata["bbs"] = bbs
+                    frame_metadata["text"] = text
+                    self.metadata_cache.write(result["frame_i"], frame_metadata)
 
                     all_text_result = utils.make_paragraphs(result["results"], tol=5000)
                     text = [all_text_result[0]["text"]]
@@ -163,11 +194,6 @@ class Background:
 
                 except Exception:
                     getting = False
-
-            json.dump(
-                self.metadata,
-                open(os.path.join(self.cache_path, "metadata.json"), "w"),
-            )
 
             print("QUEUE SIZE", self.images_queue.qsize())
 
