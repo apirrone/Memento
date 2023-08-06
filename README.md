@@ -1,6 +1,12 @@
 # Poor man's rewind.ai
 
-A simple reimplementation or rewind.ai using chromadb
+A reimplementation or rewind.ai using chromadb
+
+
+
+https://github.com/apirrone/poor_mans_rewind/assets/6552564/e48a6415-ed9c-46c0-bac1-6a364044372e
+
+
 
 ## Install
 
