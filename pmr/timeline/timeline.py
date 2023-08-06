@@ -4,7 +4,6 @@ from pmr.timeline.time_bar import TimeBar
 from pmr.timeline.search_bar import SearchBar
 from pmr.timeline.region_selector import RegionSelector
 import pmr.utils as utils
-from pmr.OCR import Tesseract
 import cv2
 import pyperclip
 from pmr.timeline.ui import PopUpManager
@@ -37,7 +36,6 @@ class Timeline:
         self.time_bar = TimeBar(self.frame_getter)
         self.search_bar = SearchBar(self.frame_getter)
         self.region_selector = RegionSelector()
-        self.ocr = Tesseract(resize_factor=3, conf_threshold=50)
         self.popup_manager = PopUpManager()
 
     def draw_current_frame(self):
@@ -70,7 +68,12 @@ class Timeline:
                 if event.button == 1:
                     self.time_bar.show()
                     self.region_selector.end(event.pos)
-                    self.region_ocr()
+                    frame = self.frame_getter.get_frame(
+                        self.time_bar.current_frame_i
+                    ).swapaxes(0, 1)
+                    res = self.region_selector.region_ocr(frame)
+                    self.frame_getter.clear_annotations()
+                    self.frame_getter.add_annotation(self.time_bar.current_frame_i, res)
                     if self.search_bar.active:
                         continue
                     if not self.time_bar.hover(event.pos):
@@ -136,50 +139,6 @@ class Timeline:
                 self.frame_getter.get_next_annotated_frame_i()
             )
 
-    # TODO handle this better
-    # maybe no need to re run ocr
-    # Temporary functions to test feature
-    def region_ocr(self):
-        frame = self.frame_getter.get_frame(self.time_bar.current_frame_i).swapaxes(
-            0, 1
-        )
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        region = self.region_selector.get_region()
-        if region is None:
-            return
-        region_area = (region[2] - region[0]) * (region[3] - region[1])
-        if region_area < 1:
-            return
-        crop = frame[region[1] : region[3], region[0] : region[2]]
-        results = self.ocr.process_image(crop)
-        res = []
-        for r in results:
-            entry = {
-                "bb": {
-                    "x": r["x"] + region[0],
-                    "y": r["y"] + region[1],
-                    "w": r["w"],
-                    "h": r["h"],
-                },
-                "text": r["text"],
-            }
-            res.append(entry)
-
-        self.frame_getter.clear_annotations()
-        self.frame_getter.add_annotation(self.time_bar.current_frame_i, res)
-
-    def handle_region_query(self):
-        region = self.region_selector.get_region()
-        if region is not None:
-            x = region[0]
-            y = region[1]
-            w = region[2] - region[0]
-            h = region[3] - region[1]
-            pygame.draw.rect(self.screen, (0, 255, 255), (x, y, w, h), 2)
-
-        if self.search_bar.active:
-            self.region_selector.reset()
-
     def run(self):
         while True:
             self.screen.fill((255, 255, 255))
@@ -187,8 +146,10 @@ class Timeline:
             self.time_bar.draw(self.screen, pygame.mouse.get_pos())
             self.search_bar.draw(self.screen)
             self.handle_inputs()
-            self.handle_region_query()
             self.popup_manager.tick(self.screen)
+
+            if self.search_bar.active:
+                self.region_selector.reset()
 
             self.region_selector.draw(self.screen, pygame.mouse.get_pos())
             pygame.display.update()
