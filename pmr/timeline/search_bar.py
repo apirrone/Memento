@@ -66,6 +66,7 @@ class SearchBar:
         query_input = self.input
 
         results = Query().query_db(query_input, nb_results=5)
+
         self.frame_getter.set_annotation(results)
         if len(results) > 0:
             self.found = True
@@ -91,7 +92,8 @@ class SearchBar:
                 if self.active and len(self.input) > 0:
                     if self.input_changed or not self.found:
                         self.start_query()
-                    ret = True
+                    if self.found:
+                        ret = True
                 self.input_changed = False
             elif self.active:
                 try:

@@ -1,5 +1,4 @@
 import os
-import json
 from glob import glob
 import pmr.utils as utils
 from pmr.caching import ReadersCache, MetadataCache
@@ -145,6 +144,7 @@ class FrameGetter:
     def add_annotation(self, frame_i, annotations):
         if str(frame_i) not in self.annotations.keys():
             self.annotations[str(frame_i)] = []
+
         for annotation in annotations:
             self.annotations[str(frame_i)].append(annotation)
             self.nb_results += 1

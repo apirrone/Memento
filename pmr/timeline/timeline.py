@@ -4,7 +4,6 @@ from pmr.timeline.time_bar import TimeBar
 from pmr.timeline.search_bar import SearchBar
 from pmr.timeline.region_selector import RegionSelector
 import pmr.utils as utils
-import cv2
 import pyperclip
 from pmr.timeline.ui import PopUpManager
 import time
@@ -62,11 +61,16 @@ class Timeline:
                         )
                         self.region_selector.reset()
                     else:
+                        self.search_bar.deactivate()
                         self.region_selector.start(event.pos)
                         self.time_bar.hide()
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
+                    if self.time_bar.hover(event.pos):
+                        continue
                     self.time_bar.show()
+                    if self.search_bar.active:
+                        continue
                     self.region_selector.end(event.pos)
                     frame = self.frame_getter.get_frame(
                         self.time_bar.current_frame_i
@@ -74,8 +78,6 @@ class Timeline:
                     res = self.region_selector.region_ocr(frame)
                     self.frame_getter.clear_annotations()
                     self.frame_getter.add_annotation(self.time_bar.current_frame_i, res)
-                    if self.search_bar.active:
-                        continue
                     if not self.time_bar.hover(event.pos):
                         self.popup_manager.add_popup(
                             "Ctrl + C to copy text",
