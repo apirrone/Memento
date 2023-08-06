@@ -1,7 +1,7 @@
 import mss
 import numpy as np
 import cv2
-import chromadb
+from langchain.vectorstores import Chroma
 import json
 import datetime
 import pmr.utils as utils
@@ -13,6 +13,9 @@ from multiprocessing import Queue
 import signal
 from pmr.OCR import Tesseract
 from pmr.caching import MetadataCache
+from langchain.embeddings.openai import OpenAIEmbeddings
+import traceback
+import sys
 
 
 class Background:
@@ -45,10 +48,14 @@ class Background:
         self.metadata_cache = MetadataCache(self.cache_path)
 
         os.makedirs(self.cache_path, exist_ok=True)
-        self.client = chromadb.PersistentClient(
-            path=os.path.join(self.cache_path, "pmr_db")
+        self.chromadb = Chroma(
+            persist_directory=self.cache_path,
+            embedding_function=OpenAIEmbeddings(),
+            collection_name="pmr_db",
         )
-        self.collection = self.client.get_or_create_collection(name="pmr_db")
+        # self.collection = self.client.get_or_create_collection(
+        #     name="pmr_db", embedding_function=OpenAIEmbeddings()
+        # )
         self.sct = mss.mss()
         self.rec = utils.Recorder(
             os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
@@ -181,13 +188,14 @@ class Background:
 
                     all_text_result = utils.make_paragraphs(result["results"], tol=5000)
                     text = [all_text_result[0]["text"]]
-                    ids = [str(result["frame_i"])]
-
                     add_db_start = time.time()
-                    self.collection.add(
-                        documents=text,
-                        ids=ids,
-                    )
+                    try:
+                        self.chromadb.add_texts(
+                            texts=text, metadatas=[{"id": str(result["frame_i"])}]
+                        )
+                    except Exception as e:
+                        print("================aaaaaaa", e)
+
                     print("ADD TO DB TIME:", time.time() - add_db_start)
 
                 except Exception:

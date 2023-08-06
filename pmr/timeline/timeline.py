@@ -31,7 +31,6 @@ class Timeline:
         self.dt = 0
 
     def update(self):
-        start = time.time()
         self.frame_getter = FrameGetter(self.window_size)
         self.time_bar = TimeBar(self.frame_getter)
         self.search_bar = SearchBar(self.frame_getter)
@@ -49,6 +48,7 @@ class Timeline:
         mouse_wheel = 0
         for event in pygame.event.get():
             found = self.search_bar.event(event)
+            self.chat.event(event)
             if event.type == pygame.MOUSEWHEEL:
                 mouse_wheel = event.x - event.y
                 if not self.ctrl_pressed:
@@ -100,7 +100,7 @@ class Timeline:
                 if event.key == pygame.K_RETURN:
                     pass
                 if event.key == pygame.K_d:
-                    if self.search_bar.active:
+                    if self.search_bar.active or self.chat.active:
                         continue
                     self.frame_getter.toggle_debug_mode()
                     self.popup_manager.add_popup(
@@ -129,6 +129,7 @@ class Timeline:
                         )
                     if event.key == pygame.K_t:
                         self.chat.activate()
+                        self.search_bar.deactivate()
             if event.type == pygame.KEYUP:
                 self.ctrl_pressed = False
 
