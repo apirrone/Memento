@@ -31,13 +31,7 @@ Then use `ctrl+f` to search
 
 
 ## TODO / Ideas
-- langchain llm to query the timeline
-- click on the timeline DONE
-  - + frame preview ? would be nice DONE
-- ctrl + f in the timeline to query DONE
-- timebar scroll (with adequate cache dump)
-- better ocr 
+- langchain llm to chat with the timeline
 - summary of your day (?)
 - activity stats
-- 
   
