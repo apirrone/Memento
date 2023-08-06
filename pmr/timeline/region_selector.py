@@ -52,10 +52,10 @@ class RegionSelector:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         region = self.get_region()
         if region is None:
-            return
+            return None
         region_area = (region[2] - region[0]) * (region[3] - region[1])
         if region_area < 1:
-            return
+            return None
         crop = frame[region[1] : region[3], region[0] : region[2]]
         results = self.ocr.process_image(crop)
         res = []

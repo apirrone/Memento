@@ -76,6 +76,8 @@ class Timeline:
                         self.time_bar.current_frame_i
                     ).swapaxes(0, 1)
                     res = self.region_selector.region_ocr(frame)
+                    if res is None:
+                        continue
                     self.frame_getter.clear_annotations()
                     self.frame_getter.add_annotation(self.time_bar.current_frame_i, res)
                     if not self.time_bar.hover(event.pos):
