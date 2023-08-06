@@ -3,6 +3,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import Chroma
+from langchain.prompts import PromptTemplate
 from pmr.query_db import Query
 from langchain.embeddings import OpenAIEmbeddings
 import os
@@ -40,12 +41,36 @@ class Chat:
         )
         self.retriever = self.chromadb.as_retriever()
 
+        # Define prompt
+        template = """Use the following pieces of context to answer the question at the end.
+        If you don't know the answer, just say that you don't know, don't try to make up an answer.
+        Use three sentences maximum and keep the answer as concise as possible.
+        Always start your answer with "Understood Sir: ".
+        At the end of your answer you will tell the following informations from the relevant context:
+        "date: "
+        "window name: ".
+        {context}
+        Question: {question}
+        Helpful Answer:"""
+
+        prompt = PromptTemplate.from_template(template)
+
+
+        # self.qa = ConversationalRetrievalChain.from_llm(
+        #     ChatOpenAI(model_name="gpt-4", temperature=0.8),
+        #     self.retriever,
+        #     memory=self.memory,
+        #     verbose=True,
+        # )
         self.qa = ConversationalRetrievalChain.from_llm(
             ChatOpenAI(model_name="gpt-4", temperature=0.8),
             self.retriever,
             memory=self.memory,
-            verbose=False,
+            verbose=True,
+            combine_docs_chain_kwargs={'prompt':prompt},
+
         )
+
 
     def scroll(self, dir):
         self.y_offset = min(0, self.y_offset+dir*10)
