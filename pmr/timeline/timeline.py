@@ -37,9 +37,8 @@ class Timeline:
         self.time_bar = TimeBar(self.frame_getter)
         self.search_bar = SearchBar(self.frame_getter)
         self.region_selector = RegionSelector()
-        self.ocr = Tesseract(resize_factor=5, conf_threshold=50)
+        self.ocr = Tesseract(resize_factor=3, conf_threshold=50)
         self.popup_manager = PopUpManager()
-        print("Init time :", time.time() - start)
 
     def draw_current_frame(self):
         frame = self.frame_getter.get_frame(self.time_bar.current_frame_i)
@@ -54,10 +53,7 @@ class Timeline:
             if event.type == pygame.MOUSEWHEEL:
                 mouse_wheel = event.x - event.y
                 if not self.ctrl_pressed:
-                    # TODO keep that ? navigate fast with scroll and use arrow keys to navigate frame per frame ?
-                    # speed = self.time_bar.tws//20
-                    # print("speed", speed)
-                    self.time_bar.move_cursor((mouse_wheel) * 1)
+                    self.time_bar.move_cursor((mouse_wheel))
                     self.region_selector.reset()
                     self.frame_getter.clear_annotations()
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -90,9 +86,12 @@ class Timeline:
                     self.time_bar.move_cursor(1)
                 if event.key == pygame.K_ESCAPE:
                     self.region_selector.reset()
+                    self.frame_getter.clear_annotations()
                 if event.key == pygame.K_RETURN:
                     pass
                 if event.key == pygame.K_u:
+                    if self.search_bar.active:
+                        continue
                     self.update()
                     self.popup_manager.add_popup(
                         "Updating ...",

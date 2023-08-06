@@ -11,7 +11,7 @@ class TimeBar:
     def __init__(self, frame_getter):
         self.frame_getter = frame_getter
         self.nb_frames = self.frame_getter.nb_frames
-        self.metadata = self.frame_getter.metadata
+        self.metadata_cache = self.frame_getter.metadata_cache
         self.show_bar = True
         self.bar_border_trigger = 10
 
@@ -39,17 +39,15 @@ class TimeBar:
 
     def zoom(self, dir):
         self.tws = min(
-            self.nb_frames,
+            min(self.nb_frames, utils.MAX_TWS),
             max(self.min_tws, int(self.tws * (1 + dir * 0.1))),
         )
 
         self.compute_time_window()
 
     def compute_time_window(self):
-        self.tw_end = self.nb_frames - self.frame_offset
-        self.tw_start = self.tw_end - self.tws
-        # TODO there is a but there with zoom, did not find it yet
-        # To reproduce, go to start of timeline and play with zoom
+        self.tw_end = int(self.nb_frames - self.frame_offset)
+        self.tw_start = max(0, int(self.tw_end - self.tws))
 
     def get_friendly_date(self, date):
         day = date.split(" ")[0]
@@ -69,7 +67,7 @@ class TimeBar:
 
     def build(self):
         for i in range(self.nb_frames):
-            app = self.metadata[str(i)]["window_title"]
+            app = self.metadata_cache.get_frame_metadata(i)["window_title"]
             if app not in self.apps:
                 self.apps[app] = {}
                 self.apps[app]["color"] = tuple(np.random.randint(0, 255, size=3))
@@ -122,10 +120,10 @@ class TimeBar:
         segments = []
 
         # Warning, it's backwards
-        last_app = self.metadata[str(self.tw_end)]["window_title"]
+        last_app = self.metadata_cache.get_frame_metadata(self.tw_end)["window_title"]
         segments.append({"app": last_app, "start": 0, "end": self.tw_end})
         for i in range(self.tw_end, self.tw_start, -1):
-            app = self.metadata[str(i)]["window_title"]
+            app = self.metadata_cache.get_frame_metadata(i)["window_title"]
 
             segments[-1]["start"] = i  # current segment
             if app != last_app:
@@ -195,7 +193,7 @@ class TimeBar:
         if not self.hover(pos):
             return
         frame_i = self.get_frame_i(pos)
-        time = self.metadata[str(frame_i)]["time"].strip('"')
+        time = self.metadata_cache.get_frame_metadata(frame_i)["time"].strip('"')
         time = self.get_friendly_date(time)
         font = pygame.font.SysFont("Arial", 20)
         text = font.render(time, True, (0, 0, 0))

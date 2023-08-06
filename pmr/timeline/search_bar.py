@@ -65,7 +65,7 @@ class SearchBar:
         self.frame_getter.clear_annotations()
         query_input = self.input
 
-        results = Query().query_db(query_input, nb_results=5)
+        results = Query(self.frame_getter.metadata_cache).query_db(query_input, nb_results=5)
         self.frame_getter.set_annotation(results)
         if len(results) > 0:
             self.found = True

@@ -1,19 +1,18 @@
 import chromadb
 import json
 import os
-import pmr.utils as utils
 from thefuzz import fuzz
+from pmr.caching import MetadataCache
 
 
 class Query:
-    def __init__(self):
+    def __init__(self, metadata_cache):
         self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
         self.client = chromadb.PersistentClient(
             path=os.path.join(self.cache_path, "pmr_db")
         )
         self.collection = self.client.get_collection(name="pmr_db")
-        self.readers_cache = utils.ReadersCache(self.cache_path)
-        self.metadata = json.load(open(os.path.join(self.cache_path, "metadata.json")))
+        self.metadata_cache = metadata_cache
 
     def query_db(self, input, nb_results=10):
         results = self.collection.query(query_texts=[input], n_results=nb_results)
@@ -23,7 +22,7 @@ class Query:
         docs = results["documents"][0]
 
         for i, frame_id in enumerate(ids):
-            frame_data = self.metadata[frame_id]
+            frame_data = self.metadata_cache.get_frame_metadata(frame_id)
 
             scores = []
             matches = []
