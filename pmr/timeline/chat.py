@@ -38,20 +38,20 @@ class Chat:
         #             "answer": "42 aaakze azke az lekajzelajze alzkej alzek jalzekajel kajzelakzej alzekj alzkejaz e azj ejhalze jalze kjazle kazje",
         #         }
         #     )
-        answer = """Answer: To use ConversationalRetrievalChain in LangChain, you may follow the steps below:
+        # answer = """Answer: To use ConversationalRetrievalChain in LangChain, you may follow the steps below:
 
-        1. Create a conversation history variable: `chat_history = []`
+        # 1. Create a conversation history variable: `chat_history = []`
 
-        2. Create a query: `query = "what did the president say about Ketanji Brown Jackson"`
+        # 2. Create a query: `query = "what did the president say about Ketanji Brown Jackson"`
 
-        3. Perform retrieval using the ConversationRetrievalChain: 
-        """
-        self.chat_history.append(
-            {
-                "question": "How to use ConversationalRetrievalChain in LangChain ?",
-                "answer": answer,
-            }
-        )
+        # 3. Perform retrieval using the ConversationRetrievalChain: 
+        # """
+        # self.chat_history.append(
+        #     {
+        #         "question": "How to use ConversationalRetrievalChain in LangChain ?",
+        #         "answer": answer,
+        #     }
+        # )
 
         self.chromadb = Chroma(
             persist_directory=self.cache_path,
@@ -121,7 +121,6 @@ class Chat:
         lines = []
         line = ""
         for word in words:
-            print(words)
             if self.font.size(line + word)[0] > max_width - self.input_box_borders * 2:
                 lines.append(line)
                 line = ""
