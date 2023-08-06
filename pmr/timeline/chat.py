@@ -46,7 +46,7 @@ class Chat:
 
         # 2. Create a query: `query = "what did the president say about Ketanji Brown Jackson"`
 
-        # 3. Perform retrieval using the ConversationRetrievalChain: 
+        # 3. Perform retrieval using the ConversationRetrievalChain:
         # """
         # self.chat_history.append(
         #     {
@@ -80,7 +80,6 @@ class Chat:
 
         prompt = PromptTemplate.from_template(template)
 
-
         # self.qa = ConversationalRetrievalChain.from_llm(
         #     ChatOpenAI(model_name="gpt-4", temperature=0.8),
         #     self.retriever,
@@ -92,10 +91,8 @@ class Chat:
             self.retriever,
             memory=self.memory,
             verbose=True,
-            combine_docs_chain_kwargs={'prompt':prompt},
-
+            combine_docs_chain_kwargs={"prompt": prompt},
         )
-
 
     def scroll(self, dir):
         self.y_offset = min(0, self.y_offset + dir * 10)
