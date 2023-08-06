@@ -13,7 +13,7 @@ class Chat:
         self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
 
         ws = frame_getter.window_size
-        self.w = ws[0] // 5
+        self.w = ws[0] // 3
         self.x = ws[0] - self.w
         self.y = 0
         self.h = ws[1]
@@ -27,6 +27,31 @@ class Chat:
 
         self.y_offset = 0
         self.chat_history = []
+        self.bubbles_space = 10
+        self.q_color = (121, 189, 139)
+        self.a_color = (113, 157, 222)
+
+        # for i in range(20):
+        #     self.chat_history.append(
+        #         {
+        #             "question": "What is the meaning of life ? alze jalzke jazle kjazlek ajzel akzej alzkej alzekjalze kjalzek jalzek ajzel kajezl akejalze ",
+        #             "answer": "42 aaakze azke az lekajzelajze alzkej alzek jalzekajel kajzelakzej alzekj alzkejaz e azj ejhalze jalze kjazle kazje",
+        #         }
+        #     )
+        answer = """Answer: To use ConversationalRetrievalChain in LangChain, you may follow the steps below:
+
+        1. Create a conversation history variable: `chat_history = []`
+
+        2. Create a query: `query = "what did the president say about Ketanji Brown Jackson"`
+
+        3. Perform retrieval using the ConversationRetrievalChain: 
+        """
+        self.chat_history.append(
+            {
+                "question": "How to use ConversationalRetrievalChain in LangChain ?",
+                "answer": answer,
+            }
+        )
 
         self.chromadb = Chroma(
             persist_directory=self.cache_path,
@@ -47,7 +72,7 @@ class Chat:
         )
 
     def scroll(self, dir):
-        self.y_offset = min(0, self.y_offset+dir*10)
+        self.y_offset = min(0, self.y_offset + dir * 10)
 
     def activate(self):
         self.active = True
@@ -90,17 +115,42 @@ class Chat:
 
             self.chat_history.append(chat_history_entry)
 
+    # TODO do better, need to take into account '\n'
     def wrap_text(self, text, max_width):
         words = text.split(" ")
         lines = []
         line = ""
         for word in words:
+            print(words)
             if self.font.size(line + word)[0] > max_width - self.input_box_borders * 2:
                 lines.append(line)
                 line = ""
             line += word + " "
         lines.append(line)
         return lines
+
+    def draw_bubble(self, screen, lines, y, question=True):
+        color = (0, 0, 0)
+        if question:
+            x = self.x + self.input_box_borders * 2
+        else:
+            x = self.x + self.input_box_borders * 3
+
+        pygame.draw.rect(
+            screen,
+            self.q_color if question else self.a_color,
+            (
+                x - self.input_box_borders,
+                y - self.input_box_borders,
+                self.w - 20 - self.input_box_borders,
+                len(lines) * self.font_size + self.input_box_borders * 3,
+            ),
+            border_radius=10,
+        )
+
+        for i, line in enumerate(lines):
+            text = self.font.render(line, True, color)
+            screen.blit(text, (x, y + self.input_box_borders + i * self.font_size))
 
     def draw_chat_history(self, screen):
         prev_height = 0
@@ -109,56 +159,31 @@ class Chat:
             answer = chat_history_entry["answer"]
             question_lines = self.wrap_text(question, self.w)
             answer_lines = self.wrap_text(answer, self.w)
-            question_height = len(question_lines) * self.font_size
-            answer_height = len(answer_lines) * self.font_size
+            question_height = len(question_lines) * self.font_size * 2
+            answer_height = len(answer_lines) * self.font_size * 2
 
-            question_color = (0, 255, 0)
-            answer_color = (0, 0, 255)
-            distance_between_questions_and_answers = 20
-
-            for j, line in enumerate(question_lines):
-                text = self.font.render(line, True, question_color)
-                screen.blit(
-                    text,
-                    (
-                        self.x + self.input_box_borders,
-                        self.y
-                        + j * self.font_size
-                        + i * self.font_size
-                        + prev_height
-                        + self.y_offset,
-                    ),
-                )
-
-            for j, line in enumerate(answer_lines):
-                text = self.font.render(line, True, answer_color)
-                screen.blit(
-                    text,
-                    (
-                        self.x + self.input_box_borders,
-                        self.y
-                        + j * self.font_size
-                        + i * self.font_size
-                        + question_height
-                        + distance_between_questions_and_answers
-                        + prev_height
-                        + self.y_offset,
-                    ),
-                )
-            prev_height += (
-                question_height + answer_height + distance_between_questions_and_answers
+            q_y = prev_height + self.y_offset + self.y + self.input_box_borders
+            a_y = (
+                prev_height
+                + question_height
+                + self.y_offset
+                + self.y
+                + self.input_box_borders
+                + self.bubbles_space * 2
             )
 
+            self.draw_bubble(screen, question_lines, q_y, question=True)
+            self.draw_bubble(screen, answer_lines, a_y, question=False)
+
+            prev_height += question_height + answer_height + self.bubbles_space * 6
+
     def draw_input_box(self, screen):
-        # at the bottom of the chatbox
-        # The text should wrap relative to the width of the input box
-        # The height of the input box should be adapted to the height of the text
         text_lines = self.wrap_text(self.input, self.w)
         text_height = len(text_lines) * self.font_size
 
         pygame.draw.rect(
             screen,
-            (0, 0, 0),
+            (50, 50, 50),
             (
                 self.x,
                 self.y - self.input_box_borders * 2 + self.h - text_height,
@@ -201,12 +226,12 @@ class Chat:
         if not self.active:
             return
 
-        pygame.draw.rect(
-            screen,
-            (255, 255, 255),
-            (self.x, self.y, self.w, self.h),
-            border_radius=10,
-        )
+        surf = pygame.Surface((self.w, self.h))
+        surf.set_alpha(200)
+        surf.fill((255, 255, 255))
+
+        pygame.draw.rect(surf, (255, 255, 255), (self.x, self.y, self.w, self.h))
+        screen.blit(surf, (self.x, self.y))
 
         self.draw_chat_history(screen)
         self.draw_input_box(screen)
