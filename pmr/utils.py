@@ -16,7 +16,6 @@ VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 # RESOLUTION = (2560, 1440)
 # RESOLUTION = (1280, 720)
 RESOLUTION = (1920, 1080)
-TIME_WINDOW_SIZE = int(10 * FPS * SECONDS_PER_REC)
 FRAME_CACHE_SIZE = 20
 
 
@@ -103,7 +102,6 @@ class Reader:
             self.frames.append(frame)
         self.offset = offset
 
-    # TODO there is a bug here, the found frame does not correspond to the ocr data
     def get_frame(self, frame_i):
         if (frame_i - self.offset) < len(self.frames):
             return self.frames[frame_i - self.offset].to_ndarray(format="bgr24")
@@ -111,7 +109,6 @@ class Reader:
             return None
 
 
-# TODO remove from cache (smartly)
 class ReadersCache:
     def __init__(self, cache_path):
         self.readers = {}

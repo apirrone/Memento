@@ -17,21 +17,49 @@ from pmr.OCR import Tesseract
 class Background:
     def __init__(self):
         self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
+
+        if os.path.exists(os.path.join(self.cache_path, "metadata.json")):
+            print("EXISTING PMR CACHE FOUND")
+            print("Continue this recording or erase and start over ? ")
+            print("1. Continue")
+            print("2. Erase and start over")
+            choice = input("Choice: ")
+            while choice not in ["1", "2"]:
+                print("Please choose 1 or 2")
+                choice = input("Choice: ")
+
+            if choice == "1":
+                self.nb_rec = len(
+                    [f for f in os.listdir(self.cache_path) if f.endswith(".mp4")]
+                )
+                self.frame_i = int(self.nb_rec * utils.FPS * utils.SECONDS_PER_REC)
+                self.metadata = json.load(
+                    open(os.path.join(self.cache_path, "metadata.json"), "r")
+                )
+            else:
+                os.system("rm -rf " + self.cache_path)
+                self.nb_rec = 0
+                self.frame_i = 0
+                self.metadata = {}
+        else:
+            self.nb_rec = 0
+            self.frame_i = 0
+            self.metadata = {}
+
         os.makedirs(self.cache_path, exist_ok=True)
         self.client = chromadb.PersistentClient(
             path=os.path.join(self.cache_path, "pmr_db")
         )
         self.collection = self.client.get_or_create_collection(name="pmr_db")
         self.sct = mss.mss()
-        self.metadata = {}
-        self.nb_rec = 0
+        # self.nb_rec = 0
         self.rec = utils.Recorder(
             os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
         )
         self.rec.start()
 
         self.running = True
-        self.frame_i = 0
+        # self.frame_i = 0
 
         self.images_queue = Queue()
         self.results_queue = Queue()

@@ -13,6 +13,7 @@ class TimeBar:
         self.nb_frames = self.frame_getter.nb_frames
         self.metadata = self.frame_getter.metadata
         self.show_bar = True
+        self.bar_border_trigger = 10
 
         # Actual graphical window size
         ws = self.frame_getter.window_size
@@ -21,8 +22,9 @@ class TimeBar:
         self.y = ws[1] - self.h - ws[1] // 10
         self.w = ws[0] - self.x * 2
 
+        self.min_tws = self.bar_border_trigger * 4
         # Time window size
-        self.tws = min(utils.TIME_WINDOW_SIZE, self.nb_frames)
+        self.tws = min(self.nb_frames, int(10 * utils.FPS * utils.SECONDS_PER_REC))
         self.frame_offset = 0  # from the right
         self.compute_time_window()  # To be called when frame_offset changes
 
@@ -35,9 +37,19 @@ class TimeBar:
 
         self.build()
 
+    def zoom(self, dir):
+        self.tws = min(
+            self.nb_frames,
+            max(self.min_tws, int(self.tws * (1 + dir * 0.1))),
+        )
+
+        self.compute_time_window()
+
     def compute_time_window(self):
         self.tw_end = self.nb_frames - self.frame_offset
         self.tw_start = self.tw_end - self.tws
+        # TODO there is a but there with zoom, did not find it yet
+        # To reproduce, go to start of timeline and play with zoom
 
     def get_friendly_date(self, date):
         day = date.split(" ")[0]
@@ -80,11 +92,11 @@ class TimeBar:
             self.tw_start, min(self.tw_end - 1, self.current_frame_i + delta)
         )
 
-        if self.current_frame_i < self.tw_start + 20:
+        if self.current_frame_i < self.tw_start + self.bar_border_trigger:
             self.frame_offset = min(self.nb_frames - self.tws, self.frame_offset + 1)
             self.compute_time_window()
 
-        if self.current_frame_i > self.tw_end - 20:
+        if self.current_frame_i > self.tw_end - self.bar_border_trigger:
             self.frame_offset = max(0, self.frame_offset - 1)
             self.compute_time_window()
 
@@ -103,6 +115,8 @@ class TimeBar:
             (cursor_x, self.y + self.h * 2),
             5,
         )
+
+        self.draw_time(screen, (cursor_x, self.y))
 
     def draw_bar(self, screen, mouse_pos):
         segments = []
@@ -177,10 +191,10 @@ class TimeBar:
             [mouse_pos[0], self.y] - np.array([frame.shape[0] // 2, frame.shape[1]]),
         )
 
-    def draw_time(self, screen, mouse_pos):
-        if not self.hover(mouse_pos):
+    def draw_time(self, screen, pos):
+        if not self.hover(pos):
             return
-        frame_i = self.get_frame_i(mouse_pos)
+        frame_i = self.get_frame_i(pos)
         time = self.metadata[str(frame_i)]["time"].strip('"')
         time = self.get_friendly_date(time)
         font = pygame.font.SysFont("Arial", 20)
@@ -191,7 +205,7 @@ class TimeBar:
             screen,
             (255, 255, 255),
             (
-                mouse_pos[0] - text_size[0] // 2 - border,
+                pos[0] - text_size[0] // 2 - border,
                 self.y + text_size[1] + self.h - border,
                 text_size[0] + border * 2,
                 text_size[1] + border * 2,
@@ -199,14 +213,12 @@ class TimeBar:
             border_radius=self.h // 2,
         )
 
-        screen.blit(
-            text, [mouse_pos[0] - text_size[0] // 2, self.y + text_size[1] + self.h]
-        )
+        screen.blit(text, [pos[0] - text_size[0] // 2, self.y + text_size[1] + self.h])
         pygame.draw.line(
             screen,
             (255, 255, 255),
-            (mouse_pos[0], self.y),
-            (mouse_pos[0], self.y + self.h),
+            (pos[0], self.y),
+            (pos[0], self.y + self.h),
             5,
         )
 
