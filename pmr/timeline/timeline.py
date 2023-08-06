@@ -18,7 +18,7 @@ class Timeline:
         pygame.display.init()
         pygame.font.init()
 
-        self.screen = pygame.display.set_mode(self.window_size, flags=pygame.SRCALPHA)
+        self.screen = pygame.display.set_mode(self.window_size, flags=pygame.SRCALPHA+pygame.NOFRAME+pygame.FULLSCREEN)
         # +pygame.HIDDEN
         pygame.key.set_repeat(500, 50)
         self.clock = pygame.time.Clock()

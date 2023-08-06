@@ -37,9 +37,11 @@ class Chat:
         self.memory = ConversationBufferMemory(
             memory_key="chat_history", return_messages=True
         )
+        self.retriever = self.chromadb.as_retriever()
+
         self.qa = ConversationalRetrievalChain.from_llm(
             ChatOpenAI(model_name="gpt-4", temperature=0.8),
-            self.chromadb.as_retriever(),
+            self.retriever,
             memory=self.memory,
             verbose=True,
         )
@@ -78,6 +80,9 @@ class Chat:
             chat_history_entry = {}
             chat_history_entry["question"] = self.input
             print("Query:", self.input)
+            docs = self.retriever.get_relevant_documents(self.input)
+            print("Relevant documents:", docs)
+
             result = self.qa({"question": self.input})
             print("Answer:", result["answer"])
             chat_history_entry["answer"] = result["answer"]
