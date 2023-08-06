@@ -166,10 +166,10 @@ class TimeBar:
         if not self.hover(mouse_pos):
             return
         frame_i = self.get_frame_i(mouse_pos)
-        frame = self.frame_getter.get_frame(frame_i, raw=True)
+        frame = self.frame_getter.get_frame(frame_i)
 
         frame = cv2.resize(frame, (0, 0), fx=0.2, fy=0.2)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
+        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
 
         surf = pygame.surfarray.make_surface(frame)
         screen.blit(

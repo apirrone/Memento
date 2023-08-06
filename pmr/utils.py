@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 import pygame
 
-FPS = 1
+FPS = 0.5
 SECONDS_PER_REC = 10
 VIDEO_CLOCK_RATE = 90000
 VIDEO_PTIME = 1 / FPS
@@ -120,11 +120,11 @@ class ReadersCache:
         self.cache_size = FRAME_CACHE_SIZE
 
     def select_video(self, frame_id):
-        return frame_id // (FPS * SECONDS_PER_REC)
+        return int(frame_id // (FPS * SECONDS_PER_REC))
 
     def get_reader(self, frame_id):
         video_id = self.select_video(frame_id)
-        offset = video_id * (FPS * SECONDS_PER_REC)
+        offset = int(video_id * (FPS * SECONDS_PER_REC))
         if video_id not in self.readers:  # Caching reader
             start = time.time()
             self.readers[video_id] = Reader(
