@@ -29,6 +29,7 @@ class Query:
         ids = []
         for doc in results:
             ids.append(doc.metadata["id"])
+            print(doc.metadata["frame_metadata"])
 
         final_results = {}
         for i, frame_id in enumerate(ids):

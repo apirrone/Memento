@@ -74,7 +74,6 @@ class Chat:
 
     def scroll(self, dir):
         self.y_offset = min(0, self.y_offset+dir*10)
-        # self.y_offset += dir * 10
 
     def activate(self):
         self.active = True

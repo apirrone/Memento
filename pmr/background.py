@@ -14,8 +14,6 @@ import signal
 from pmr.OCR import Tesseract
 from pmr.caching import MetadataCache
 from langchain.embeddings.openai import OpenAIEmbeddings
-import traceback
-import sys
 
 
 class Background:
@@ -191,7 +189,13 @@ class Background:
                     add_db_start = time.time()
                     try:
                         self.chromadb.add_texts(
-                            texts=text, metadatas=[{"id": str(result["frame_i"])}]
+                            texts=text,
+                            metadatas=[
+                                {
+                                    "id": str(result["frame_i"]),
+                                    "frame_metadata": json.dumps(frame_metadata),
+                                }
+                            ],
                         )
                     except Exception as e:
                         print("================aaaaaaa", e)
