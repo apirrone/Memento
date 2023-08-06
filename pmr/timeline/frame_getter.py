@@ -16,20 +16,60 @@ class FrameGetter:
         self.metadata = json.load(open(os.path.join(self.cache_path, "metadata.json")))
         self.annotations = {}
         self.current_ret_annotated = 0
-        self.nb_frames = (
-            len(glob(os.path.join(self.cache_path, "*.mp4")))
-            * utils.FPS
-            * utils.SECONDS_PER_REC
+        self.nb_frames = int(
+            (
+                len(glob(os.path.join(self.cache_path, "*.mp4")))
+                * utils.FPS
+                * utils.SECONDS_PER_REC
+            )
         )
         self.nb_results = 0
+        self.debug_mode = False
 
-    def get_frame(self, i, raw=False):
-        im = self.readers_cache.get_frame(min(self.nb_frames - 1, i))
-        im = self.annotate_frame(i, im)
-        if not raw:
+        self.current_displayed_frame_i = 0
+        self.current_displayed_frame = None
+
+    def toggle_debug_mode(self):
+        self.debug_mode = not self.debug_mode
+        self.clear_annotations()
+        self.current_displayed_frame = None
+
+    def get_frame(self, frame_i):
+        im = self.current_displayed_frame
+
+        # Avoid resizing and converting the same frame each time
+        if (
+            frame_i != self.current_displayed_frame_i
+            or self.current_displayed_frame is None
+        ):
+            im = self.readers_cache.get_frame(min(self.nb_frames - 1, frame_i))
+            self.process_debug(frame_i)
+            im = self.annotate_frame(frame_i, im)
             im = cv2.resize(im, self.window_size)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
+            self.current_displayed_frame = im
+            self.current_displayed_frame_i = frame_i
         return im
+
+    def process_debug(self, frame_i):
+        if self.debug_mode:
+            self.clear_annotations()
+            frame_metadata = self.metadata[str(frame_i)]
+            if "bbs" in frame_metadata:
+                res = []
+                for i in range(len(frame_metadata["bbs"])):
+                    entry = {}
+                    bb = frame_metadata["bbs"][i]
+                    text = frame_metadata["text"][i]
+                    entry["bb"] = {
+                        "x": bb["x"],
+                        "y": bb["y"],
+                        "w": bb["w"],
+                        "h": bb["h"],
+                    }
+                    entry["text"] = text
+                    res.append(entry)
+                self.add_annotation(frame_i, res)
 
     def annotate_frame(self, frame_i, frame):
         if str(frame_i) in self.annotations.keys():
@@ -50,15 +90,15 @@ class FrameGetter:
                 if res is None:
                     continue
                 frame[y : y + h, x : x + w] = res
-                # frame = cv2.putText(
-                #     frame,
-                #     text,
-                #     (x, y - 10),
-                #     cv2.FONT_HERSHEY_SIMPLEX,
-                #     1,
-                #     (0, 0, 255),
-                #     2,
-                # )
+                frame = cv2.putText(
+                    frame,
+                    text,
+                    (x, y+10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 0, 0),
+                    2,
+                )
             frame = cv2.putText(
                 frame,
                 f"{self.nb_results} results",
@@ -108,6 +148,7 @@ class FrameGetter:
         for annotation in annotations:
             self.annotations[str(frame_i)].append(annotation)
             self.nb_results += 1
+        self.current_displayed_frame = None
 
     def is_annotated(self, frame_i):
         return str(frame_i) in self.annotations.keys()

@@ -62,11 +62,12 @@ class Timeline:
                     self.region_ocr()
                     if self.search_bar.active:
                         continue
-                    self.popup_manager.add_popup(
-                        "Ctrl + C to copy text",
-                        (50, 70),
-                        2,
-                    )
+                    if not self.time_bar.hover(event.pos):
+                        self.popup_manager.add_popup(
+                            "Ctrl + C to copy text",
+                            (50, 70),
+                            2,
+                        )
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     self.time_bar.move_cursor(-1)
@@ -76,6 +77,17 @@ class Timeline:
                     self.region_selector.reset()
                 if event.key == pygame.K_RETURN:
                     pass
+                if event.key == pygame.K_d:
+                    if self.search_bar.active:
+                        continue
+                    self.frame_getter.toggle_debug_mode()
+                    self.popup_manager.add_popup(
+                        "DEBUG MODE ON"
+                        if self.frame_getter.debug_mode
+                        else "DEBUG MODE OFF",
+                        (50, 70),
+                        2,
+                    )
                 if event.mod & pygame.KMOD_CTRL and event.key == pygame.K_c:
                     text = self.frame_getter.get_annotations_text()
                     pyperclip.copy(text)
