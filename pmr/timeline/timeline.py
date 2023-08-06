@@ -3,6 +3,7 @@ from pmr.timeline.frame_getter import FrameGetter
 from pmr.timeline.time_bar import TimeBar
 from pmr.timeline.search_bar import SearchBar
 from pmr.timeline.region_selector import RegionSelector
+from pmr.timeline.chat import Chat
 import pmr.utils as utils
 import pyperclip
 from pmr.timeline.ui import PopUpManager
@@ -36,6 +37,7 @@ class Timeline:
         self.search_bar = SearchBar(self.frame_getter)
         self.region_selector = RegionSelector()
         self.popup_manager = PopUpManager()
+        self.chat = Chat(self.frame_getter)
 
     def draw_current_frame(self):
         frame = self.frame_getter.get_frame(self.time_bar.current_frame_i)
@@ -94,17 +96,9 @@ class Timeline:
                 if event.key == pygame.K_ESCAPE:
                     self.region_selector.reset()
                     self.frame_getter.clear_annotations()
+                    self.chat.deactivate()
                 if event.key == pygame.K_RETURN:
                     pass
-                if event.key == pygame.K_u:
-                    if self.search_bar.active:
-                        continue
-                    self.update()
-                    self.popup_manager.add_popup(
-                        "Updating ...",
-                        (50, 70),
-                        2,
-                    )
                 if event.key == pygame.K_d:
                     if self.search_bar.active:
                         continue
@@ -126,6 +120,15 @@ class Timeline:
                             (50, 70),
                             2,
                         )
+                    if event.key == pygame.K_u:
+                        self.update()
+                        self.popup_manager.add_popup(
+                            "Updating ...",
+                            (50, 70),
+                            2,
+                        )
+                    if event.key == pygame.K_t:
+                        self.chat.activate()
             if event.type == pygame.KEYUP:
                 self.ctrl_pressed = False
 
@@ -149,6 +152,7 @@ class Timeline:
             self.draw_current_frame()
             self.time_bar.draw(self.screen, pygame.mouse.get_pos())
             self.search_bar.draw(self.screen)
+            self.chat.draw(self.screen)
             self.handle_inputs()
             self.popup_manager.tick(self.screen)
 

@@ -13,9 +13,12 @@ class Query:
         self.collection = self.client.get_collection(name="pmr_db")
         self.metadata_cache = MetadataCache(self.cache_path)
 
+    def query_db(self, input, nb_results=10):
+        return self.collection.query(query_texts=[input], n_results=nb_results)
+
     # TODO score threshold seems high
-    def query_db(self, input, nb_results=10, score_threshold=50):
-        results = self.collection.query(query_texts=[input], n_results=nb_results)
+    def search(self, input, nb_results=10, score_threshold=50):
+        results = self.query_db(input, nb_results=nb_results)
         final_results = {}
         ids = results["ids"][0]
         docs = results["documents"][0]
