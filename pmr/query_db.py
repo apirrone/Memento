@@ -6,13 +6,13 @@ from pmr.caching import MetadataCache
 
 
 class Query:
-    def __init__(self, metadata_cache):
+    def __init__(self):
         self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
         self.client = chromadb.PersistentClient(
             path=os.path.join(self.cache_path, "pmr_db")
         )
         self.collection = self.client.get_collection(name="pmr_db")
-        self.metadata_cache = metadata_cache
+        self.metadata_cache = MetadataCache(self.cache_path)
 
     def query_db(self, input, nb_results=10):
         results = self.collection.query(query_texts=[input], n_results=nb_results)
