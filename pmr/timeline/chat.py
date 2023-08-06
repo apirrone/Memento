@@ -3,7 +3,6 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import Chroma
-from pmr.query_db import Query
 from langchain.embeddings import OpenAIEmbeddings
 import os
 
@@ -42,12 +41,11 @@ class Chat:
             ChatOpenAI(model_name="gpt-4", temperature=0.8),
             self.chromadb.as_retriever(),
             memory=self.memory,
-            verbose=False,
+            verbose=True,
         )
 
     def scroll(self, dir):
         self.y_offset = min(0, self.y_offset+dir*10)
-        # self.y_offset += dir * 10
 
     def activate(self):
         self.active = True
