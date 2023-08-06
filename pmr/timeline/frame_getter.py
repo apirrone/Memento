@@ -134,6 +134,7 @@ class FrameGetter:
 
     def set_annotation(self, annotations):
         self.annotations = annotations
+        self.current_displayed_frame = None
 
     def get_annotations_text(self):
         text = ""
