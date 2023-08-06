@@ -26,6 +26,7 @@ class Chat:
 
         self.input_box_borders = 10
 
+        self.y_offset = 0
         self.chat_history = []
 
         self.chromadb = Chroma(
@@ -43,6 +44,10 @@ class Chat:
             memory=self.memory,
             verbose=False,
         )
+
+    def scroll(self, dir):
+        self.y_offset = min(0, self.y_offset+dir*10)
+        # self.y_offset += dir * 10
 
     def activate(self):
         self.active = True
@@ -67,6 +72,8 @@ class Chat:
                     self.input += chr(event.key)
                 except Exception:
                     pass
+        if event.type == pygame.MOUSEWHEEL:
+            self.scroll(event.y)
 
     def query_llm(self):
         if len(self.input) > 0:
@@ -93,6 +100,7 @@ class Chat:
         return lines
 
     def draw_chat_history(self, screen):
+        prev_height = 0
         for i, chat_history_entry in enumerate(self.chat_history):
             question = chat_history_entry["question"]
             answer = chat_history_entry["answer"]
@@ -111,7 +119,11 @@ class Chat:
                     text,
                     (
                         self.x + self.input_box_borders,
-                        self.y + j * self.font_size + i * self.font_size,
+                        self.y
+                        + j * self.font_size
+                        + i * self.font_size
+                        + prev_height
+                        + self.y_offset,
                     ),
                 )
 
@@ -125,12 +137,14 @@ class Chat:
                         + j * self.font_size
                         + i * self.font_size
                         + question_height
-                        + distance_between_questions_and_answers,
+                        + distance_between_questions_and_answers
+                        + prev_height
+                        + self.y_offset,
                     ),
                 )
-                
-
-            
+            prev_height += (
+                question_height + answer_height + distance_between_questions_and_answers
+            )
 
     def draw_input_box(self, screen):
         # at the bottom of the chatbox
@@ -191,5 +205,5 @@ class Chat:
             border_radius=10,
         )
 
-        self.draw_input_box(screen)
         self.draw_chat_history(screen)
+        self.draw_input_box(screen)

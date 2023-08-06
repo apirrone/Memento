@@ -51,7 +51,7 @@ class Timeline:
             self.chat.event(event)
             if event.type == pygame.MOUSEWHEEL:
                 mouse_wheel = event.x - event.y
-                if not self.ctrl_pressed:
+                if not self.ctrl_pressed and not self.chat.active:
                     self.time_bar.move_cursor((mouse_wheel))
                     self.region_selector.reset()
                     self.frame_getter.clear_annotations()
