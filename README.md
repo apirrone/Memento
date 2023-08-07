@@ -2,9 +2,12 @@
 
 A reimplementation or rewind.ai using chromadb
 
-
-
 https://github.com/apirrone/poor_mans_rewind/assets/6552564/e48a6415-ed9c-46c0-bac1-6a364044372e
+
+
+https://github.com/apirrone/poor_mans_rewind/assets/6552564/f2f42333-df4f-4d5a-affb-4db0f1ca6be0
+
+
 
 
 
