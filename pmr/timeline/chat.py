@@ -7,6 +7,8 @@ from langchain.prompts import PromptTemplate
 from pmr.query_db import Query
 from langchain.embeddings import OpenAIEmbeddings
 import os
+import multiprocessing
+from multiprocessing import Queue
 
 
 # Chat window on the right of the screen
@@ -94,6 +96,10 @@ class Chat:
             combine_docs_chain_kwargs={"prompt": prompt},
         )
 
+        self.query_queue = Queue()
+        self.answer_queue = Queue()
+        multiprocessing.Process(target=self.process_chat_query, args=()).start()
+
     def scroll(self, dir):
         self.y_offset = min(0, self.y_offset + dir * 10)
 
@@ -103,6 +109,22 @@ class Chat:
     def deactivate(self):
         self.active = False
         self.input = ""
+
+    def process_chat_query(self):
+        print("Starting chat query process")
+        while True:
+            print("aa")
+            q = self.query_queue.get()
+            input = q["input"]
+
+            print("Query:", input)
+            docs = self.retriever.get_relevant_documents(self.input)
+            print("Relevant documents:", docs)
+
+            result = self.qa({"question": self.input})
+            print("Answer:", result["answer"])
+            self.answer_queue.put(result)
+            # chat_history_entry["answer"] = result["answer"]
 
     def event(self, event):
         if not self.active:
@@ -127,16 +149,10 @@ class Chat:
         if len(self.input) > 0:
             chat_history_entry = {}
             chat_history_entry["question"] = self.input
-            print("Query:", self.input)
-            docs = self.retriever.get_relevant_documents(self.input)
-            print("Relevant documents:", docs)
-
-            result = self.qa({"question": self.input})
-            print("Answer:", result["answer"])
-            chat_history_entry["answer"] = result["answer"]
-            self.input = ""
-
+            chat_history_entry["answer"] = None
             self.chat_history.append(chat_history_entry)
+            self.query_queue.put({"input": self.input})
+            self.input = ""
 
     # TODO do better, need to take into account '\n'
     def wrap_text(self, text, max_width):
@@ -178,7 +194,17 @@ class Chat:
         prev_height = 0
         for i, chat_history_entry in enumerate(self.chat_history):
             question = chat_history_entry["question"]
-            answer = chat_history_entry["answer"]
+            
+            if chat_history_entry["answer"] is None:
+                if pygame.time.get_ticks() % 1000 < 333:
+                    answer = "."
+                elif 333 < pygame.time.get_ticks() % 1000 < 666:
+                    answer = ".."
+                else:
+                    answer = "..."
+            else:
+                answer = chat_history_entry["answer"]
+
             question_lines = self.wrap_text(question, self.w)
             answer_lines = self.wrap_text(answer, self.w)
             question_height = len(question_lines) * self.font_size * 2
@@ -245,6 +271,13 @@ class Chat:
 
     # Draw chatbox with input region at the bottom
     def draw(self, screen):
+        try:
+            result = self.answer_queue.get(False)
+            self.chat_history[-1]["answer"] = result["answer"]
+            print("GOT ANSWER")
+
+        except Exception:
+            pass
         if not self.active:
             return
 
