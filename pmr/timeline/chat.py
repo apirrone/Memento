@@ -10,6 +10,8 @@ import os
 import multiprocessing
 from multiprocessing import Queue
 
+import pmr.timeline.text_utils as text_utils
+
 
 # Chat window on the right of the screen
 class Chat:
@@ -31,7 +33,9 @@ class Chat:
 
         self.y_offset = 0
         self.chat_history = []
-        self.bubbles_space = 10
+        self.bubbles_vertical_space = 10
+        self.bubble_inner_margin = 10
+        self.chatbox_margin = 10
         self.q_color = (121, 189, 139)
         self.a_color = (113, 157, 222)
 
@@ -50,12 +54,13 @@ class Chat:
 
         # 3. Perform retrieval using the ConversationRetrievalChain:
         # """
-        # self.chat_history.append(
-        #     {
-        #         "question": "How to use ConversationalRetrievalChain in LangChain ?",
-        #         "answer": answer,
-        #     }
-        # )
+        # for i in range(20):
+        #     self.chat_history.append(
+        #         {
+        #             "question": "How to use ConversationalRetrievalChain in LangChain ?",
+        #             "answer": answer,
+        #         }
+        #     )
 
         self.chromadb = Chroma(
             persist_directory=self.cache_path,
@@ -154,8 +159,7 @@ class Chat:
             self.query_queue.put({"input": self.input})
             self.input = ""
 
-    # TODO do better, need to take into account '\n'
-    def wrap_text(self, text, max_width):
+    def wrap_text_input(self, text, max_width):
         words = text.split(" ")
         lines = []
         line = ""
@@ -167,34 +171,41 @@ class Chat:
         lines.append(line)
         return lines
 
-    def draw_bubble(self, screen, lines, y, question=True):
+    def draw_bubble(self, screen, text, y, question=True):
         color = (0, 0, 0)
         if question:
-            x = self.x + self.input_box_borders * 2
+            x = self.x + self.chatbox_margin
         else:
-            x = self.x + self.input_box_borders * 3
+            x = self.x + self.chatbox_margin * 2
+
+        text_w = self.w - self.bubble_inner_margin * 4 - self.chatbox_margin * 2
+        bubble_w = self.w - self.chatbox_margin * 4
+        text_height = text_utils.get_text_height(text, self.font, text_w)
+        bubble_height = text_height + self.bubble_inner_margin * 4
 
         pygame.draw.rect(
             screen,
             self.q_color if question else self.a_color,
-            (
-                x - self.input_box_borders,
-                y - self.input_box_borders,
-                self.w - 20 - self.input_box_borders,
-                len(lines) * self.font_size + self.input_box_borders * 3,
-            ),
+            (x, y, bubble_w, bubble_height),
             border_radius=10,
         )
 
-        for i, line in enumerate(lines):
-            text = self.font.render(line, True, color)
-            screen.blit(text, (x, y + self.input_box_borders + i * self.font_size))
+        text_utils.render_text(
+            screen,
+            text,
+            self.font,
+            x + self.bubble_inner_margin,
+            y + self.bubble_inner_margin,
+            text_w,
+            color,
+        )
+        return bubble_height
 
     def draw_chat_history(self, screen):
         prev_height = 0
         for i, chat_history_entry in enumerate(self.chat_history):
             question = chat_history_entry["question"]
-            
+
             if chat_history_entry["answer"] is None:
                 if pygame.time.get_ticks() % 1000 < 333:
                     answer = "."
@@ -205,28 +216,15 @@ class Chat:
             else:
                 answer = chat_history_entry["answer"]
 
-            question_lines = self.wrap_text(question, self.w)
-            answer_lines = self.wrap_text(answer, self.w)
-            question_height = len(question_lines) * self.font_size * 2
-            answer_height = len(answer_lines) * self.font_size * 2
-
             q_y = prev_height + self.y_offset + self.y + self.input_box_borders
-            a_y = (
-                prev_height
-                + question_height
-                + self.y_offset
-                + self.y
-                + self.input_box_borders
-                + self.bubbles_space * 2
-            )
+            q_height = self.draw_bubble(screen, question, q_y, question=True)
+            a_y = q_y + q_height + self.bubbles_vertical_space
+            a_height = self.draw_bubble(screen, answer, a_y, question=False)
 
-            self.draw_bubble(screen, question_lines, q_y, question=True)
-            self.draw_bubble(screen, answer_lines, a_y, question=False)
-
-            prev_height += question_height + answer_height + self.bubbles_space * 6
+            prev_height += q_height + a_height + self.bubbles_vertical_space * 4
 
     def draw_input_box(self, screen):
-        text_lines = self.wrap_text(self.input, self.w)
+        text_lines = self.wrap_text_input(self.input, self.w)
         text_height = len(text_lines) * self.font_size
 
         pygame.draw.rect(
@@ -253,21 +251,22 @@ class Chat:
                     + i * self.font_size,
                 ),
             )
-        cursor_x = self.font.size(text_lines[-1])[0] + 10
-        pygame.draw.rect(
-            screen,
-            (255, 255, 255),
-            (
-                self.x + cursor_x,
-                self.y
-                + self.h
-                - text_height
-                - self.input_box_borders
-                + (len(text_lines) - 1) * self.font_size,
-                2,
-                self.font_size,
-            ),
-        )
+        if pygame.time.get_ticks() % 1000 < 500:
+            cursor_x = self.font.size(text_lines[-1])[0] + 5
+            pygame.draw.rect(
+                screen,
+                (255, 255, 255),
+                (
+                    self.x + cursor_x,
+                    self.y
+                    + self.h
+                    - text_height
+                    - self.input_box_borders
+                    + (len(text_lines) - 1) * self.font_size,
+                    2,
+                    self.font_size,
+                ),
+            )
 
     # Draw chatbox with input region at the bottom
     def draw(self, screen):
