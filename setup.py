@@ -23,7 +23,8 @@ setup(
         "thefuzz==0.19.0",
         "langchain==0.0.253",
         "openai==0.27.8",
-        "tiktoken==0.4.0"
+        "tiktoken==0.4.0",
+        "python-Levenshtein==0.21.1"
         # "easyocr==1.7.0",
         # "Pillow==9.5.0"
 
