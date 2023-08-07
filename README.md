@@ -27,7 +27,7 @@ $ pmr-bg
 $ pmr-timeline
 ```
 
-Then use `ctrl+f` to search
+Then use `ctrl+f` to search or `ctrl+t` to chat with the timeline through a llm
 
 
 ## TODO / Ideas
