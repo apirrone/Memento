@@ -9,7 +9,7 @@ from langchain.embeddings import OpenAIEmbeddings
 import os
 import multiprocessing
 from multiprocessing import Queue
-
+import json
 import pmr.timeline.text_utils as text_utils
 
 
@@ -69,23 +69,28 @@ class Chat:
         )
 
         self.memory = ConversationBufferMemory(
-            memory_key="chat_history", return_messages=True
+            memory_key="chat_history", return_messages=True, input_key="question"
         )
         self.retriever = self.chromadb.as_retriever()
 
         # Define prompt
-        template = """Use the following pieces of context to answer the question at the end. Answer in the same language the question was asked.
+        template = """Use the following pieces of context and metadata to answer the question at the end. Answer in the same language the question was asked.
         If you don't know the answer, just say that you don't know, don't try to make up an answer.
+        You will format your answer in json, with the keys "answer" and "frames_ids". 
+        The value of "answer" will be the answer to the question, and the value of "frames_ids" will be a list of frame_ids from which you got the information from using the metadata.
         Use three sentences maximum and keep the answer as concise as possible.
-        Always start your answer with "Understood Sir: ", or a translated version.
-        At the end of your answer you will tell the following informations from the relevant context:
-        "date: "
-        "window name: ".
-        {context}
+
+        Context: {context}
         Question: {question}
+        Metadata: {md}
+
         Helpful Answer:"""
 
-        prompt = PromptTemplate.from_template(template)
+        # prompt = PromptTemplate.from_template(template)
+
+        prompt = PromptTemplate(
+            input_variables=["question", "context", "md"], template=template
+        )
 
         # self.qa = ConversationalRetrievalChain.from_llm(
         #     ChatOpenAI(model_name="gpt-4", temperature=0.8),
@@ -122,13 +127,23 @@ class Chat:
             inp = q["input"]
 
             print("Query:", inp)
+            print("Retrieving relevant documents")
             docs = self.retriever.get_relevant_documents(inp)
-            print("Relevant documents:", docs)
+            print("done")
+            md = {}
+            for doc in docs:
+                frame_metadata = json.loads(doc.metadata["frame_metadata"])
+                frame_id = doc.metadata["id"]
+                md[frame_id] = {
+                    "window_title": frame_metadata["window_title"],
+                    "date": frame_metadata["time"],
+                }
 
-            result = self.qa({"question": inp})
+            result = self.qa(inputs={"question": inp, "md": md})
+            result = json.loads(result["answer"])
             print("Answer:", result["answer"])
+            print("frames_ids:", result["frames_ids"])
             self.answer_queue.put(result)
-            # chat_history_entry["answer"] = result["answer"]
 
     def event(self, event):
         if not self.active:
@@ -154,6 +169,7 @@ class Chat:
             chat_history_entry = {}
             chat_history_entry["question"] = self.input
             chat_history_entry["answer"] = None
+            chat_history_entry["frames_ids"] = None
             self.chat_history.append(chat_history_entry)
             self.query_queue.put({"input": self.input})
             self.input = ""
@@ -214,6 +230,7 @@ class Chat:
                     answer = "..."
             else:
                 answer = chat_history_entry["answer"]
+                answer += '\n' + str(chat_history_entry["frames_ids"])
 
             q_y = prev_height + self.y_offset + self.y + self.input_box_borders
             q_height = self.draw_bubble(screen, question, q_y, question=True)
@@ -272,7 +289,7 @@ class Chat:
         try:
             result = self.answer_queue.get(False)
             self.chat_history[-1]["answer"] = result["answer"]
-            print("GOT ANSWER")
+            self.chat_history[-1]["frames_ids"] = result["frames_ids"]
 
         except Exception:
             pass

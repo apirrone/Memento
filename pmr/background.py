@@ -51,9 +51,7 @@ class Background:
             embedding_function=OpenAIEmbeddings(),
             collection_name="pmr_db",
         )
-        # self.collection = self.client.get_or_create_collection(
-        #     name="pmr_db", embedding_function=OpenAIEmbeddings()
-        # )
+
         self.sct = mss.mss()
         self.rec = utils.Recorder(
             os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
@@ -125,7 +123,6 @@ class Background:
         signal.signal(signal.SIGINT, self.stop_rec)
 
         print("Running in background ...")
-        last_sc = time.time()
         prev_im = np.zeros(
             (utils.RESOLUTION[1], utils.RESOLUTION[0], 3), dtype=np.uint8
         )
@@ -133,9 +130,7 @@ class Background:
             window_title = utils.get_active_window()
 
             # Get screenshot and add it to recorder
-            # print("time since last screenshot", time.time() - last_sc)
             im = np.array(self.sct.grab(self.sct.monitors[1]))
-            last_sc = time.time()
             im = im[:, :, :-1]
             im = cv2.resize(im, utils.RESOLUTION)
             asyncio.run(self.rec.new_im(im))

@@ -7,7 +7,6 @@ from pmr.timeline.chat import Chat
 import pmr.utils as utils
 import pyperclip
 from pmr.timeline.ui import PopUpManager
-import time
 
 
 class Timeline:
@@ -154,6 +153,9 @@ class Timeline:
             self.time_bar.draw(self.screen, pygame.mouse.get_pos())
             self.search_bar.draw(self.screen)
             self.chat.draw(self.screen)
+                
+
+
             self.handle_inputs()
             self.popup_manager.tick(self.screen)
 
