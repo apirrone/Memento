@@ -17,7 +17,9 @@ class Timeline:
         pygame.display.init()
         pygame.font.init()
 
-        self.screen = pygame.display.set_mode(self.window_size, flags=pygame.SRCALPHA+pygame.NOFRAME)#+pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode(
+            self.window_size, flags=pygame.SRCALPHA + pygame.NOFRAME
+        )  # +pygame.FULLSCREEN)
         # +pygame.HIDDEN
         pygame.key.set_repeat(500, 50)
         self.clock = pygame.time.Clock()
@@ -44,14 +46,18 @@ class Timeline:
 
     def handle_inputs(self):
         found = False
+        ret_frame = None
         mouse_wheel = 0
         for event in pygame.event.get():
             found = self.search_bar.event(event)
-            self.chat.event(event)
+            ret_frame = self.chat.event(event)
             if event.type == pygame.MOUSEWHEEL:
                 mouse_wheel = event.x - event.y
-                if not self.ctrl_pressed and not self.chat.active:
-                    self.time_bar.move_cursor((mouse_wheel))
+                if not self.ctrl_pressed:
+                    if self.chat.active and self.chat.hover(pygame.mouse.get_pos()):
+                        self.chat.scroll(event.y)
+                    else:
+                        self.time_bar.move_cursor((mouse_wheel))
                     self.region_selector.reset()
                     self.frame_getter.clear_annotations()
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -61,7 +67,7 @@ class Timeline:
                             self.time_bar.get_frame_i(event.pos)
                         )
                         self.region_selector.reset()
-                    else:
+                    elif not self.chat.hover(pygame.mouse.get_pos()):
                         self.search_bar.deactivate()
                         self.region_selector.start(event.pos)
                         self.time_bar.hide()
@@ -136,7 +142,7 @@ class Timeline:
             if mouse_wheel != 0:
                 self.time_bar.zoom(mouse_wheel)
                 self.popup_manager.add_popup(
-                    "Zoom : " + str(self.time_bar.tws * 1/utils.FPS) + "s",
+                    "Zoom : " + str(self.time_bar.tws * 1 / utils.FPS) + "s",
                     (50, 70),
                     2,
                 )
@@ -146,6 +152,15 @@ class Timeline:
                 self.frame_getter.get_next_annotated_frame_i()
             )
 
+        if ret_frame is not None:
+            self.time_bar.set_current_frame_i(int(ret_frame))
+
+        self.popup_manager.add_popup(
+            "Frame : " + str(self.time_bar.current_frame_i),
+            (50, self.window_size[1] - 70),
+            0.1,
+        )
+
     def run(self):
         while True:
             self.screen.fill((255, 255, 255))
@@ -153,8 +168,6 @@ class Timeline:
             self.time_bar.draw(self.screen, pygame.mouse.get_pos())
             self.search_bar.draw(self.screen)
             self.chat.draw(self.screen)
-                
-
 
             self.handle_inputs()
             self.popup_manager.tick(self.screen)

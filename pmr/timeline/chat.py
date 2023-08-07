@@ -4,13 +4,14 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
-from pmr.query_db import Query
 from langchain.embeddings import OpenAIEmbeddings
 import os
 import multiprocessing
 from multiprocessing import Queue
 import json
 import pmr.timeline.text_utils as text_utils
+import pmr.utils as utils
+import cv2
 
 
 # Chat window on the right of the screen
@@ -18,7 +19,9 @@ class Chat:
     def __init__(self, frame_getter):
         self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
 
-        ws = frame_getter.window_size
+        self.frame_getter = frame_getter
+
+        ws = self.frame_getter.window_size
         self.w = ws[0] // 3
         self.x = ws[0] - self.w
         self.y = 0
@@ -39,13 +42,28 @@ class Chat:
         self.q_color = (121, 189, 139)
         self.a_color = (113, 157, 222)
 
-        # for i in range(20):
+        self.frame_peek_w = int(self.w / 3 - self.chatbox_margin * 2)
+        self.frames_peeks_rects = {}
+        self.frame_peek_hovered_id = None
+
+        # For debug
+        # for i in range(1):
+        #     frames = {"1": None, "2": None, "3": None}  # , "4": None, "5": None}
+        #     for frame_id in frames.keys():
+        #         frame = cv2.resize(
+        #             self.frame_getter.get_frame(int(frame_id)),
+        #             (self.frame_peek_w, self.frame_peek_w),
+        #         )
+        #         frame = pygame.surfarray.make_surface(frame)
+        #         frames[frame_id] = frame
         #     self.chat_history.append(
         #         {
         #             "question": "What is the meaning of life ? alze jalzke jazle kjazlek ajzel akzej alzkej alzekjalze kjalzek jalzek ajzel kajezl akejalze ",
         #             "answer": "42 aaakze azke az lekajzelajze alzkej alzek jalzekajel kajzelakzej alzekj alzkejaz e azj ejhalze jalze kjazle kazje",
+        #             "frames": frames,
         #         }
         #     )
+
         # answer = """Answer: To use ConversationalRetrievalChain in LangChain, you may follow the steps below:
 
         # 1. Create a conversation history variable: `chat_history = []`
@@ -111,7 +129,11 @@ class Chat:
         multiprocessing.Process(target=self.process_chat_query, args=()).start()
 
     def scroll(self, dir):
-        self.y_offset = min(0, self.y_offset + dir * 10)
+        if len(self.chat_history) > 0:
+            self.y_offset = min(0, self.y_offset + dir * 10)
+
+    def hover(self, mouse_pos):
+        return utils.in_rect((self.x, self.y, self.w, self.h), mouse_pos)
 
     def activate(self):
         self.active = True
@@ -147,7 +169,7 @@ class Chat:
 
     def event(self, event):
         if not self.active:
-            return
+            return None
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.deactivate()
@@ -161,15 +183,17 @@ class Chat:
                     self.input += chr(event.key)
                 except Exception:
                     pass
-        if event.type == pygame.MOUSEWHEEL:
-            self.scroll(event.y)
+            return None
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if self.frame_peek_hovered_id is not None:
+                return self.frame_peek_hovered_id
 
     def query_llm(self):
         if len(self.input) > 0:
             chat_history_entry = {}
             chat_history_entry["question"] = self.input
             chat_history_entry["answer"] = None
-            chat_history_entry["frames_ids"] = None
+            chat_history_entry["frames"] = {}
             self.chat_history.append(chat_history_entry)
             self.query_queue.put({"input": self.input})
             self.input = ""
@@ -186,7 +210,42 @@ class Chat:
         lines.append(line)
         return lines
 
-    def draw_bubble(self, screen, text, y, question=True):
+    def handle_frames_peeks(self, screen):
+        self.frame_peek_hovered_id = None
+        for frame_id, frame_peek_rect in self.frames_peeks_rects.items():
+            if utils.in_rect(frame_peek_rect, pygame.mouse.get_pos()):
+                pygame.draw.rect(
+                    screen,
+                    self.a_color,
+                    frame_peek_rect,
+                    width=10,
+                )
+                self.frame_peek_hovered_id = frame_id
+
+    def draw_frames_peeks(self, screen, frames, start_y):
+        height = 0
+        frames_peeks_rects = {}
+        if frames is None or len(frames) == 0:
+            return height, frames_peeks_rects
+
+        i = 0
+        x = self.x + self.chatbox_margin
+        y = start_y
+        for frame_id, frame_surf in frames.items():
+            if i % 3 == 0 and i != 0:
+                x = self.x + self.chatbox_margin
+                height += self.frame_peek_w + self.bubble_inner_margin
+                y += height
+            elif i != 0:
+                x += self.frame_peek_w + self.bubble_inner_margin
+
+            screen.blit(frame_surf, (x, y))
+            frames_peeks_rects[frame_id] = (x, y, self.frame_peek_w, self.frame_peek_w)
+            i += 1
+        height += self.frame_peek_w + self.bubble_inner_margin
+        return height, frames_peeks_rects
+
+    def draw_bubble(self, screen, text, y, question=True, frames=None):
         color = (0, 0, 0)
         if question:
             x = self.x + self.chatbox_margin
@@ -214,10 +273,18 @@ class Chat:
             text_w,
             color,
         )
-        return bubble_height
+
+        peeks_height, frames_peeks_rects = self.draw_frames_peeks(
+            screen, frames, y + bubble_height + self.bubble_inner_margin * 2
+        )
+        return (
+            bubble_height + peeks_height + self.bubble_inner_margin * 2,
+            frames_peeks_rects,
+        )
 
     def draw_chat_history(self, screen):
         prev_height = 0
+        self.frames_peeks_rects = {}
         for i, chat_history_entry in enumerate(self.chat_history):
             question = chat_history_entry["question"]
 
@@ -230,12 +297,21 @@ class Chat:
                     answer = "..."
             else:
                 answer = chat_history_entry["answer"]
-                answer += '\n' + str(chat_history_entry["frames_ids"])
+                # answer += "\n" + str(list(chat_history_entry["frames"].keys()))
 
             q_y = prev_height + self.y_offset + self.y + self.input_box_borders
-            q_height = self.draw_bubble(screen, question, q_y, question=True)
+            q_height, _ = self.draw_bubble(screen, question, q_y, question=True)
             a_y = q_y + q_height + self.bubbles_vertical_space
-            a_height = self.draw_bubble(screen, answer, a_y, question=False)
+            a_height, frames_peeks_rects = self.draw_bubble(
+                screen,
+                answer,
+                a_y,
+                question=False,
+                frames=chat_history_entry["frames"],
+            )
+
+            for frame_id, frame_peek_rect in frames_peeks_rects.items():
+                self.frames_peeks_rects[frame_id] = frame_peek_rect
 
             prev_height += q_height + a_height + self.bubbles_vertical_space * 4
 
@@ -289,7 +365,14 @@ class Chat:
         try:
             result = self.answer_queue.get(False)
             self.chat_history[-1]["answer"] = result["answer"]
-            self.chat_history[-1]["frames_ids"] = result["frames_ids"]
+            frames_ids = result["frames_ids"]
+            for frame_id in frames_ids:
+                frame = cv2.resize(
+                    self.frame_getter.get_frame(int(frame_id)),
+                    (self.frame_peek_w, self.frame_peek_w),
+                )
+                frame = pygame.surfarray.make_surface(frame)
+                self.chat_history[-1]["frames"][frame_id] = frame
 
         except Exception:
             pass
@@ -304,4 +387,5 @@ class Chat:
         screen.blit(surf, (self.x, self.y))
 
         self.draw_chat_history(screen)
+        self.handle_frames_peeks(screen)
         self.draw_input_box(screen)

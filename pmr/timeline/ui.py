@@ -28,12 +28,19 @@ class PopUp:
 
 class PopUpManager:
     def __init__(self):
-        self.popups = []
+        self.popups = {}
 
     def add_popup(self, text, pos, lifetime):
-        self.popups.append(PopUp(text, pos, lifetime))
+        if text not in self.popups.keys():
+            self.popups[text] = PopUp(text, pos, lifetime)
+        else:
+            self.popups[text].start_time = time.time()
 
     def tick(self, screen):
-        for p in self.popups:
+        todelete = []
+        for p in self.popups.values():
             if not p.draw(screen):
-                self.popups.remove(p)
+                todelete.append(p.text)
+
+        for p in todelete:
+            del self.popups[p]
