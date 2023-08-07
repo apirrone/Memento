@@ -120,13 +120,13 @@ class Timeline:
                             (50, 70),
                             2,
                         )
-                    if event.key == pygame.K_u:
-                        self.update()
-                        self.popup_manager.add_popup(
-                            "Updating ...",
-                            (50, 70),
-                            2,
-                        )
+                    # if event.key == pygame.K_u:
+                    #     self.update()
+                    #     self.popup_manager.add_popup(
+                    #         "Updating ...",
+                    #         (50, 70),
+                    #         2,
+                    #     )
                     if event.key == pygame.K_t:
                         self.chat.activate()
                         self.search_bar.deactivate()
@@ -137,7 +137,7 @@ class Timeline:
             if mouse_wheel != 0:
                 self.time_bar.zoom(mouse_wheel)
                 self.popup_manager.add_popup(
-                    "Zoom : " + str(self.time_bar.tws) + "s",
+                    "Zoom : " + str(self.time_bar.tws * 1/utils.FPS) + "s",
                     (50, 70),
                     2,
                 )

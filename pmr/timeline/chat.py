@@ -74,10 +74,10 @@ class Chat:
         self.retriever = self.chromadb.as_retriever()
 
         # Define prompt
-        template = """Use the following pieces of context to answer the question at the end.
+        template = """Use the following pieces of context to answer the question at the end. Answer in the same language the question was asked.
         If you don't know the answer, just say that you don't know, don't try to make up an answer.
         Use three sentences maximum and keep the answer as concise as possible.
-        Always start your answer with "Understood Sir: ".
+        Always start your answer with "Understood Sir: ", or a translated version.
         At the end of your answer you will tell the following informations from the relevant context:
         "date: "
         "window name: ".
@@ -118,15 +118,14 @@ class Chat:
     def process_chat_query(self):
         print("Starting chat query process")
         while True:
-            print("aa")
             q = self.query_queue.get()
-            input = q["input"]
+            inp = q["input"]
 
-            print("Query:", input)
-            docs = self.retriever.get_relevant_documents(self.input)
+            print("Query:", inp)
+            docs = self.retriever.get_relevant_documents(inp)
             print("Relevant documents:", docs)
 
-            result = self.qa({"question": self.input})
+            result = self.qa({"question": inp})
             print("Answer:", result["answer"])
             self.answer_queue.put(result)
             # chat_history_entry["answer"] = result["answer"]
