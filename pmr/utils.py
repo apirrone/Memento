@@ -99,7 +99,35 @@ def in_rect(rect, pos):
     return x <= pos[0] <= x + w and y <= pos[1] <= y + h
 
 
-def draw_results(res, image):
+def draw_results(res, frame):
+    for entry in res:
+        x = int(entry["x"])
+        y = int(entry["y"])
+        w = int(entry["w"])
+        h = int(entry["h"])
+        text = entry["text"]
+
+        red_rect = np.ones((h, w, 3), dtype=np.uint8)
+        red_rect[:, :, 2] = 0
+        red_rect *= 200
+        sub_img = frame[y : y + h, x : x + w]
+        res = cv2.addWeighted(sub_img, 0.5, red_rect, 0.5, 1.0)
+        if res is None:
+            continue
+        frame[y : y + h, x : x + w] = res
+        frame = cv2.putText(
+            frame,
+            text,
+            (x, y + 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 0, 0),
+            2,
+        )
+    return frame
+
+
+def _draw_results(res, image):
     for entry in res:
         x = int(entry["x"])
         y = int(entry["y"])
