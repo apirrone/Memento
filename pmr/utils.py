@@ -5,6 +5,8 @@ import time
 import asyncio
 import cv2
 import numpy as np
+import os
+import subprocess
 
 FPS = 0.5
 SECONDS_PER_REC = 10
@@ -14,7 +16,7 @@ VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 # RESOLUTION = (2560, 1440)
 # RESOLUTION = (1280, 720)
 RESOLUTION = (1920, 1080)
-MAX_TWS = 100 * FPS * SECONDS_PER_REC
+MAX_TWS = 10000 * FPS * SECONDS_PER_REC
 FRAME_CACHE_SIZE = int((MAX_TWS / FPS / SECONDS_PER_REC))
 
 
@@ -168,3 +170,9 @@ def make_paragraphs(res, tol=500):
 def imgdiff(im1, im2):
     diff = np.bitwise_xor(im1, im2)
     return np.sum(diff) / (im1.shape[0] * im1.shape[1] * im1.shape[2])
+
+
+def recording():
+    res = os.popen("ps aux | grep pmr-bg").read()
+    # > 3 because ps and grep themselves are included in the output (2) and if pmr-bg is running (and not waiting for starting prompt), there are at least two processes
+    return len(res.splitlines()) > 3

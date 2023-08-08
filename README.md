@@ -30,7 +30,10 @@ $ pmr-bg
 $ pmr-timeline
 ```
 
-Then use `ctrl+f` to search
+Then use `ctrl+f` to search.
+
+If you want to chat with the timeline through a llm, you need an openai api key in your env as `OPENAI_API_KEY`.
+Then use `ctrl+t` to open the chatbox.
 
 
 ## TODO / Ideas

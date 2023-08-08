@@ -3,6 +3,7 @@ from pmr.timeline.frame_getter import FrameGetter
 from pmr.timeline.time_bar import TimeBar
 from pmr.timeline.search_bar import SearchBar
 from pmr.timeline.region_selector import RegionSelector
+from pmr.timeline.chat import Chat
 import pmr.utils as utils
 import pyperclip
 from pmr.timeline.ui import PopUpManager
@@ -17,7 +18,9 @@ class Timeline:
         pygame.display.init()
         pygame.font.init()
 
-        self.screen = pygame.display.set_mode(self.window_size, flags=pygame.SRCALPHA)
+        self.screen = pygame.display.set_mode(
+            self.window_size, flags=pygame.SRCALPHA + pygame.NOFRAME
+        )  # +pygame.FULLSCREEN)
         # +pygame.HIDDEN
         pygame.key.set_repeat(500, 50)
         self.clock = pygame.time.Clock()
@@ -27,15 +30,19 @@ class Timeline:
         self.update()
 
         self.t = 0
-        self.dt = 0
+        self.dt = 1
+        self.fps = 0
+
+        self.is_recording = False
+        self.last_is_recording_update = 0
 
     def update(self):
-        start = time.time()
         self.frame_getter = FrameGetter(self.window_size)
         self.time_bar = TimeBar(self.frame_getter)
         self.search_bar = SearchBar(self.frame_getter)
         self.region_selector = RegionSelector()
         self.popup_manager = PopUpManager()
+        self.chat = Chat(self.frame_getter)
 
     def draw_current_frame(self):
         frame = self.frame_getter.get_frame(self.time_bar.current_frame_i)
@@ -44,13 +51,18 @@ class Timeline:
 
     def handle_inputs(self):
         found = False
+        ret_frame = None
         mouse_wheel = 0
         for event in pygame.event.get():
             found = self.search_bar.event(event)
+            ret_frame = self.chat.event(event)
             if event.type == pygame.MOUSEWHEEL:
                 mouse_wheel = event.x - event.y
                 if not self.ctrl_pressed:
-                    self.time_bar.move_cursor((mouse_wheel))
+                    if self.chat.active and self.chat.hover(pygame.mouse.get_pos()):
+                        self.chat.scroll(event.y)
+                    else:
+                        self.time_bar.move_cursor((mouse_wheel))
                     self.region_selector.reset()
                     self.frame_getter.clear_annotations()
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -60,7 +72,7 @@ class Timeline:
                             self.time_bar.get_frame_i(event.pos)
                         )
                         self.region_selector.reset()
-                    else:
+                    elif not self.chat.hover(pygame.mouse.get_pos()):
                         self.search_bar.deactivate()
                         self.region_selector.start(event.pos)
                         self.time_bar.hide()
@@ -94,19 +106,11 @@ class Timeline:
                 if event.key == pygame.K_ESCAPE:
                     self.region_selector.reset()
                     self.frame_getter.clear_annotations()
+                    self.chat.deactivate()
                 if event.key == pygame.K_RETURN:
                     pass
-                if event.key == pygame.K_u:
-                    if self.search_bar.active:
-                        continue
-                    self.update()
-                    self.popup_manager.add_popup(
-                        "Updating ...",
-                        (50, 70),
-                        2,
-                    )
                 if event.key == pygame.K_d:
-                    if self.search_bar.active:
+                    if self.search_bar.active or self.chat.active:
                         continue
                     self.frame_getter.toggle_debug_mode()
                     self.popup_manager.add_popup(
@@ -126,6 +130,16 @@ class Timeline:
                             (50, 70),
                             2,
                         )
+                    # if event.key == pygame.K_u:
+                    #     self.update()
+                    #     self.popup_manager.add_popup(
+                    #         "Updating ...",
+                    #         (50, 70),
+                    #         2,
+                    #     )
+                    if event.key == pygame.K_t:
+                        self.chat.activate()
+                        self.search_bar.deactivate()
             if event.type == pygame.KEYUP:
                 self.ctrl_pressed = False
 
@@ -133,7 +147,7 @@ class Timeline:
             if mouse_wheel != 0:
                 self.time_bar.zoom(mouse_wheel)
                 self.popup_manager.add_popup(
-                    "Zoom : " + str(self.time_bar.tws) + "s",
+                    "Zoom : " + str(self.time_bar.tws * 1 / utils.FPS) + "s",
                     (50, 70),
                     2,
                 )
@@ -143,12 +157,42 @@ class Timeline:
                 self.frame_getter.get_next_annotated_frame_i()
             )
 
+        if ret_frame is not None:
+            self.time_bar.set_current_frame_i(int(ret_frame))
+
+        if self.frame_getter.debug_mode:
+            self.popup_manager.add_popup(
+                "Frame : " + str(self.time_bar.current_frame_i),
+                (50, self.window_size[1] - 70),
+                0.1,
+            )
+
+    def draw_and_update_is_recording(self):
+        if time.time() - self.last_is_recording_update > 2:
+            self.last_is_recording_update = time.time()
+            self.is_recording = utils.recording()
+
+        if self.is_recording:
+            if pygame.time.get_ticks() % 1000 < 500:
+                radius = 5
+                pygame.draw.circle(
+                    self.screen,
+                    (255, 0, 0),
+                    (self.window_size[0] - radius, radius),
+                    radius,
+                )
+
+    def compute_fps(self):
+        self.fps = int(1 / self.dt)
+
     def run(self):
         while True:
             self.screen.fill((255, 255, 255))
             self.draw_current_frame()
             self.time_bar.draw(self.screen, pygame.mouse.get_pos())
             self.search_bar.draw(self.screen)
+            self.chat.draw(self.screen)
+
             self.handle_inputs()
             self.popup_manager.tick(self.screen)
 
@@ -156,6 +200,16 @@ class Timeline:
                 self.region_selector.reset()
 
             self.region_selector.draw(self.screen, pygame.mouse.get_pos())
+
+            self.draw_and_update_is_recording()
+            self.compute_fps()
+            if self.frame_getter.debug_mode:
+                self.popup_manager.add_popup(
+                    "FPS : " + str(self.fps),
+                    (self.window_size[0] - 150, 10),
+                    0.1,
+                )
+
             pygame.display.update()
             self.dt = self.clock.tick() / 1000.0
             self.t += self.dt

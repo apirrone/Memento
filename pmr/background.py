@@ -1,7 +1,7 @@
 import mss
 import numpy as np
 import cv2
-import chromadb
+from langchain.vectorstores import Chroma
 import json
 import datetime
 import pmr.utils as utils
@@ -13,6 +13,7 @@ from multiprocessing import Queue
 import signal
 from pmr.OCR import Tesseract
 from pmr.caching import MetadataCache
+from langchain.embeddings.openai import OpenAIEmbeddings
 
 
 class Background:
@@ -45,10 +46,12 @@ class Background:
         self.metadata_cache = MetadataCache(self.cache_path)
 
         os.makedirs(self.cache_path, exist_ok=True)
-        self.client = chromadb.PersistentClient(
-            path=os.path.join(self.cache_path, "pmr_db")
+        self.chromadb = Chroma(
+            persist_directory=self.cache_path,
+            embedding_function=OpenAIEmbeddings(),
+            collection_name="pmr_db",
         )
-        self.collection = self.client.get_or_create_collection(name="pmr_db")
+
         self.sct = mss.mss()
         self.rec = utils.Recorder(
             os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
@@ -122,7 +125,6 @@ class Background:
         signal.signal(signal.SIGINT, self.stop_rec)
 
         print("Running in background ...")
-        last_sc = time.time()
         prev_im = np.zeros(
             (utils.RESOLUTION[1], utils.RESOLUTION[0], 3), dtype=np.uint8
         )
@@ -130,9 +132,7 @@ class Background:
             window_title = utils.get_active_window()
 
             # Get screenshot and add it to recorder
-            # print("time since last screenshot", time.time() - last_sc)
             im = np.array(self.sct.grab(self.sct.monitors[1]))
-            last_sc = time.time()
             im = im[:, :, :-1]
             im = cv2.resize(im, utils.RESOLUTION)
             asyncio.run(self.rec.new_im(im))
@@ -183,13 +183,20 @@ class Background:
 
                     all_text_result = utils.make_paragraphs(result["results"], tol=5000)
                     text = [all_text_result[0]["text"]]
-                    ids = [str(result["frame_i"])]
-
                     add_db_start = time.time()
-                    self.collection.add(
-                        documents=text,
-                        ids=ids,
-                    )
+                    try:
+                        self.chromadb.add_texts(
+                            texts=text,
+                            metadatas=[
+                                {
+                                    "id": str(result["frame_i"]),
+                                    "frame_metadata": json.dumps(frame_metadata),
+                                }
+                            ],
+                        )
+                    except Exception as e:
+                        print("================aaaaaaa", e)
+
                     print("ADD TO DB TIME:", time.time() - add_db_start)
 
                 except Exception:
