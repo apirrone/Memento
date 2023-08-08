@@ -30,7 +30,8 @@ class Timeline:
         self.update()
 
         self.t = 0
-        self.dt = 0
+        self.dt = 1
+        self.fps = 0
 
         self.is_recording = False
         self.last_is_recording_update = 0
@@ -159,11 +160,12 @@ class Timeline:
         if ret_frame is not None:
             self.time_bar.set_current_frame_i(int(ret_frame))
 
-        self.popup_manager.add_popup(
-            "Frame : " + str(self.time_bar.current_frame_i),
-            (50, self.window_size[1] - 70),
-            0.1,
-        )
+        if self.frame_getter.debug_mode:
+            self.popup_manager.add_popup(
+                "Frame : " + str(self.time_bar.current_frame_i),
+                (50, self.window_size[1] - 70),
+                0.1,
+            )
 
     def draw_and_update_is_recording(self):
         if time.time() - self.last_is_recording_update > 2:
@@ -174,8 +176,14 @@ class Timeline:
             if pygame.time.get_ticks() % 1000 < 500:
                 radius = 5
                 pygame.draw.circle(
-                    self.screen, (255, 0, 0), (self.window_size[0] - radius, radius), radius
+                    self.screen,
+                    (255, 0, 0),
+                    (self.window_size[0] - radius, radius),
+                    radius,
                 )
+
+    def compute_fps(self):
+        self.fps = int(1 / self.dt)
 
     def run(self):
         while True:
@@ -194,6 +202,13 @@ class Timeline:
             self.region_selector.draw(self.screen, pygame.mouse.get_pos())
 
             self.draw_and_update_is_recording()
+            self.compute_fps()
+            if self.frame_getter.debug_mode:
+                self.popup_manager.add_popup(
+                    "FPS : " + str(self.fps),
+                    (self.window_size[0] - 150, 10),
+                    0.1,
+                )
 
             pygame.display.update()
             self.dt = self.clock.tick() / 1000.0
