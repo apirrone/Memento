@@ -7,6 +7,7 @@ from pmr.timeline.chat import Chat
 import pmr.utils as utils
 import pyperclip
 from pmr.timeline.ui import PopUpManager
+import time
 
 
 class Timeline:
@@ -30,6 +31,9 @@ class Timeline:
 
         self.t = 0
         self.dt = 0
+
+        self.is_recording = False
+        self.last_is_recording_update = 0
 
     def update(self):
         self.frame_getter = FrameGetter(self.window_size)
@@ -161,6 +165,18 @@ class Timeline:
             0.1,
         )
 
+    def draw_and_update_is_recording(self):
+        if time.time() - self.last_is_recording_update > 2:
+            self.last_is_recording_update = time.time()
+            self.is_recording = utils.recording()
+
+        if self.is_recording:
+            if pygame.time.get_ticks() % 1000 < 500:
+                radius = 5
+                pygame.draw.circle(
+                    self.screen, (255, 0, 0), (self.window_size[0] - radius, radius), radius
+                )
+
     def run(self):
         while True:
             self.screen.fill((255, 255, 255))
@@ -176,6 +192,9 @@ class Timeline:
                 self.region_selector.reset()
 
             self.region_selector.draw(self.screen, pygame.mouse.get_pos())
+
+            self.draw_and_update_is_recording()
+
             pygame.display.update()
             self.dt = self.clock.tick() / 1000.0
             self.t += self.dt
