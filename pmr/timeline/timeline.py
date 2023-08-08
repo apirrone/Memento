@@ -6,7 +6,7 @@ from pmr.timeline.region_selector import RegionSelector
 from pmr.timeline.chat import Chat
 import pmr.utils as utils
 import pyperclip
-from pmr.timeline.ui import PopUpManager
+from pmr.timeline.ui import PopUpManager, Plot
 import time
 
 
@@ -32,6 +32,7 @@ class Timeline:
         self.t = 0
         self.dt = 1
         self.fps = 0
+        self.fps_plot = Plot(300, self.window_size[0] - 310, 50, 300, 100, (255, 0, 0))
 
         self.is_recording = False
         self.last_is_recording_update = 0
@@ -182,8 +183,18 @@ class Timeline:
                     radius,
                 )
 
-    def compute_fps(self):
+    def draw_and_compute_fps(self):
         self.fps = int(1 / self.dt)
+        self.fps_plot.add_point(self.fps)
+
+        if self.frame_getter.debug_mode:
+            self.popup_manager.add_popup(
+                "FPS : " + str(self.fps),
+                (self.window_size[0] - 150, 10),
+                0.1,
+            )
+
+            self.fps_plot.draw(self.screen)
 
     def run(self):
         while True:
@@ -202,13 +213,7 @@ class Timeline:
             self.region_selector.draw(self.screen, pygame.mouse.get_pos())
 
             self.draw_and_update_is_recording()
-            self.compute_fps()
-            if self.frame_getter.debug_mode:
-                self.popup_manager.add_popup(
-                    "FPS : " + str(self.fps),
-                    (self.window_size[0] - 150, 10),
-                    0.1,
-                )
+            self.draw_and_compute_fps()
 
             pygame.display.update()
             self.dt = self.clock.tick() / 1000.0

@@ -29,6 +29,8 @@ class TimeBar:
         self.compute_time_window()  # To be called when frame_offset changes
 
         self.current_frame_i = self.tw_end - 1
+        self.preview_frame_i = 0
+        self.preview_surf = None
 
         self.ig = IconGetter(size=self.h)
 
@@ -174,19 +176,22 @@ class TimeBar:
                         ),
                     )
 
+    # TODO cache previews ?
     def draw_preview(self, screen, mouse_pos):
         if not self.hover(mouse_pos):
             return
         frame_i = self.get_frame_i(mouse_pos)
-        frame = self.frame_getter.get_frame(frame_i)
-
-        frame = cv2.resize(frame, (0, 0), fx=0.2, fy=0.2)
-        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
-
-        surf = pygame.surfarray.make_surface(frame)
+        if frame_i != self.preview_frame_i or self.preview_surf is None:
+            self.preview_frame_i = frame_i
+            frame = self.frame_getter.get_frame(frame_i)
+            frame = cv2.resize(frame, (0, 0), fx=0.2, fy=0.2)
+            self.preview_surf = pygame.surfarray.make_surface(frame)
         screen.blit(
-            surf,
-            [mouse_pos[0], self.y] - np.array([frame.shape[0] // 2, frame.shape[1]]),
+            self.preview_surf,
+            [mouse_pos[0], self.y]
+            - np.array(
+                [self.preview_surf.get_size()[0] // 2, self.preview_surf.get_size()[1]]
+            ),
         )
 
     def draw_time(self, screen, pos):
