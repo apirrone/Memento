@@ -17,6 +17,12 @@ https://github.com/apirrone/poor_mans_rewind/assets/6552564/f2f42333-df4f-4d5a-a
 $ pip install -e .
 ```
 
+You also need to install `tesseract-ocr` on your system
+
+```console
+$ sudo apt install tesseract-ocr
+```
+
 ## Usage
 ### Background process
 Run in a terminal  
