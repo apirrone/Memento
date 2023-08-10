@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from TextTron.TextTron import TextTron
+
 # import easyocr
 import pytesseract
 from pytesseract import Output
@@ -28,12 +29,31 @@ class OCR:
         #         gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 57, 1.0
         #     )
 
-        thr2=cv2.bitwise_not(gray)
-        thr2 = cv2.adaptiveThreshold(thr2,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
+        thr2 = cv2.bitwise_not(gray)
+        thr2 = cv2.adaptiveThreshold(
+            thr2, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+        )
 
-        thr=thr2
+        thr = thr2
         cl = cv2.cvtColor(thr, cv2.COLOR_GRAY2BGR)
         return cl, thr
+
+    def convert_texttron_bbox_format(self, bboxes, minAreaThreshold=100):
+        new_bboxes = []
+        for bbox in bboxes:
+            x = bbox[0]
+            y = bbox[1]
+            w = bbox[2]
+            h = bbox[3]
+            area = w * h
+            if area < minAreaThreshold:
+                continue
+            x1 = x
+            x2 = x + w
+            y1 = y
+            y2 = y + h
+            new_bboxes.append([x1, x2, y1, y2])
+        return new_bboxes
 
 
 # class EasyOCR(OCR):
