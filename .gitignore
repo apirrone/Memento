@@ -10,3 +10,4 @@ pmr.egg-info/*
 *.h264
 *.mp4
 pmr/timeline/__pycache__/*
+experiments/test_modal_donut/__pycache__/*

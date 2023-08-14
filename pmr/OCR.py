@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from TextTron.TextTron import TextTron
-
+import time
 # import easyocr
 import pytesseract
 from pytesseract import Output
@@ -18,16 +18,6 @@ class OCR:
     def preprocess(self, im):
         im = cv2.resize(im, (0, 0), fx=self.rf, fy=self.rf)
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-
-        # if gray.mean() > 127:
-        #     thr = cv2.adaptiveThreshold(
-        #         gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 57, 1.0
-        #     )
-
-        # else:
-        #     thr = cv2.adaptiveThreshold(
-        #         gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 57, 1.0
-        #     )
 
         thr2 = cv2.bitwise_not(gray)
         thr2 = cv2.adaptiveThreshold(
@@ -124,9 +114,13 @@ class Tesseract(OCR):
         self.rf = resize_factor
         self.conf_threshold = conf_threshold
 
-    def process_image(self, im):
-        cl, thr = self.preprocess(im)
-        custom_oem_psm_config = r"--oem 3 --psm 11"
+    def process_image(self, im, preprocess=True):
+        thr = im
+        if preprocess:
+            start = time.time()
+            cl, thr = self.preprocess(im)
+            print("preprocess time: ", time.time() - start)
+        custom_oem_psm_config = r"--oem 3 --psm 3" # 4
         results = pytesseract.image_to_data(
             thr,
             output_type=Output.DICT,

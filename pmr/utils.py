@@ -101,7 +101,6 @@ def in_rect(rect, pos):
 
 def draw_results(res, frame):
     for entry in res:
-        print(entry)
         x = int(entry["x"])
         y = int(entry["y"])
         w = int(entry["w"])
