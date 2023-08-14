@@ -2,10 +2,14 @@ import cv2
 import numpy as np
 from TextTron.TextTron import TextTron
 import time
+
 # import easyocr
 import pytesseract
 from pytesseract import Output
 import pmr.utils as utils
+from pmr.texttron_wrapper import TexttronWrapper
+from tesserocr import PyTessBaseAPI
+from PIL import Image
 
 
 class OCR:
@@ -107,6 +111,39 @@ class OCR:
 #         return new_bboxes
 
 
+class TextronTesseract(OCR):
+    def __init__(self, langs="eng+fra", resize_factor=2, conf_threshold=90):
+        super().__init__()
+        self.langs = langs
+        self.rf = resize_factor
+        self.conf_threshold = conf_threshold
+        self.api = PyTessBaseAPI()
+
+    def process_image(self, im):
+        cl, thr = self.preprocess(im)
+        bboxes = TexttronWrapper(cl).bboxes
+        results = []
+        for box in bboxes:
+            x1 = box[0]
+            x2 = box[1]
+            y1 = box[2]
+            y2 = box[3]
+            crop = cl[y1:y2, x1:x2, :]
+            self.api.SetImage(Image.fromarray(crop))
+            ocrResult = self.api.GetUTF8Text()
+            entry = {
+                "x": int(x1) // self.rf,
+                "y": int(y1) // self.rf,
+                "w": int(x2 - x1) // self.rf,
+                "h": int(y2 - y1) // self.rf,
+                "text": ocrResult,
+                "conf" : 100
+            }
+            results.append(entry)
+
+        return results
+
+
 class Tesseract(OCR):
     def __init__(self, langs="eng+fra", resize_factor=2, conf_threshold=90):
         super().__init__()
@@ -120,7 +157,7 @@ class Tesseract(OCR):
             start = time.time()
             cl, thr = self.preprocess(im)
             print("preprocess time: ", time.time() - start)
-        custom_oem_psm_config = r"--oem 3 --psm 3" # 4
+        custom_oem_psm_config = r"--oem 3 --psm 3"  # 4
         results = pytesseract.image_to_data(
             thr,
             output_type=Output.DICT,

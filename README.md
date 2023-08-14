@@ -17,10 +17,18 @@ https://github.com/apirrone/poor_mans_rewind/assets/6552564/f2f42333-df4f-4d5a-a
 $ pip install -e .
 ```
 
-You also need to install `tesseract-ocr` on your system
+You also need to install `tesseract-ocr` on your system. To install latest version (tesseract 5.x.x):
 
 ```console
+$ sudo apt update
+$ sudo add-apt-repository ppa:alex-p/tesseract-ocr-devel
 $ sudo apt install tesseract-ocr
+```
+Then install the language packs you need, for example:
+
+```console
+$ sudo apt install tesseract-ocr-eng
+$ sudo apt install tesseract-ocr-fra
 ```
 
 ## Usage

@@ -1,19 +1,20 @@
 import cv2
 from pmr.OCR import OCR
-from TextTron.TextTron import TextTron
 from pmr.utils import draw_results
+from texttron_wrapper import TexttronWrapper
+import time
 
 dumm_ocr = OCR()
 dumm_ocr.rf = 1
 
 for i in range(4):
-    im = cv2.imread(str(i)+".png")
+    im = cv2.imread(str(i) + ".png")
 
     cl, thr = dumm_ocr.preprocess(im)
-    TT = TextTron(cl, xThreshold=1, yThreshold=1)
-    bboxes = dumm_ocr.convert_texttron_bbox_format(TT.textBBox)
+    ttw = TexttronWrapper(cl)
+
     results = []
-    for bbox in bboxes:
+    for bbox in ttw.bboxes:
         x1 = bbox[0]
         x2 = bbox[1]
         y1 = bbox[2]
@@ -25,6 +26,7 @@ for i in range(4):
             "h": int(y2 - y1),
             "text": "",
         }
+        print(entry)
         results.append(entry)
     out = draw_results(results, im)
-    cv2.imwrite("out"+str(i)+".png", out)
+    cv2.imwrite("out" + str(i) + ".png", out)
