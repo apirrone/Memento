@@ -11,7 +11,7 @@ import time
 import multiprocessing
 from multiprocessing import Queue
 import signal
-from pmr.OCR import Tesseract
+from pmr.OCR import TextronTesseract
 from pmr.caching import MetadataCache
 from langchain.embeddings.openai import OpenAIEmbeddings
 
@@ -79,8 +79,7 @@ class Background:
         # ocr = EasyOCR()
         # TODO tune resize factor (1 is ok, 2 is better but slower)
 
-        ocr = Tesseract(resize_factor=2, conf_threshold=50)
-
+        ocr = TextronTesseract(resize_factor=2, conf_threshold=50)
 
         signal.signal(signal.SIGINT, self.stop_process)
         while True:
