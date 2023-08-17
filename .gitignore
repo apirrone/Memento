@@ -12,3 +12,5 @@ pmr.egg-info/*
 pmr/timeline/__pycache__/*
 experiments/test_modal_donut/__pycache__/*
 experiments/__pycache__/*
+*.pkl
+*.txt

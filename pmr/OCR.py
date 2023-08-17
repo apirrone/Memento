@@ -121,7 +121,7 @@ class TextronTesseract(OCR):
 
     def process_image(self, im):
         cl, thr = self.preprocess(im)
-        bboxes = TexttronWrapper(cl).bboxes
+        bboxes = TexttronWrapper(cl, xThreshold=5, yThreshold=2).bboxes
         results = []
         for box in bboxes:
             x1 = box[0]
