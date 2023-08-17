@@ -32,11 +32,10 @@ for i in range(4):
         bboxes.append([x1, y1, w, h])
         print(entry)
         results.append(entry)
-    gs = GridSeg(bboxes, 200, im.shape[:2])
+    gs = GridSeg(bboxes, 300, im.shape[:2])
     tmp = gs.draw_grid()
     cv2.imwrite("grid" + str(i) + ".png", tmp)
     regions = gs.get_regions()
-    print(regions)
     results = []
     for region in regions:
         entry = {

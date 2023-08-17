@@ -7,8 +7,8 @@ import numpy as np
 import pickle
 from xycut import XYCut
 
-# imgs = ["0.png", "1.png", "2.png", "3.png", "4.png"]
-imgs = ["0.png"]
+imgs = ["0.png", "1.png", "2.png", "3.png", "4.png"]
+# imgs = ["0.png"]
 
 box = (280, 290, 1700, 560)
 # with PyTessBaseAPI(psm=PSM.OSD_ONLY, oem=OEM.LSTM_ONLY) as api:
