@@ -176,7 +176,8 @@ class Background:
                     frame_metadata["bbs"] = bbs
                     frame_metadata["text"] = text
                     self.metadata_cache.write(result["frame_i"], frame_metadata)
-
+                    if len(text) == 0:
+                        continue
                     add_db_start = time.time()
                     md = [
                         {
