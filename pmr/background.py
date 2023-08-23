@@ -76,11 +76,7 @@ class Background:
     def process_images(self):
         # Infinite worker
 
-        # ocr = EasyOCR()
-        # TODO tune resize factor (1 is ok, 2 is better but slower)
-
-        ocr = Tesseract(resize_factor=2, conf_threshold=50)
-
+        ocr = Tesseract()
 
         signal.signal(signal.SIGINT, self.stop_process)
         while True:
@@ -181,23 +177,26 @@ class Background:
                     frame_metadata["text"] = text
                     self.metadata_cache.write(result["frame_i"], frame_metadata)
 
-                    all_text_result = utils.make_paragraphs(result["results"], tol=5000)
-                    text = [all_text_result[0]["text"]]
                     add_db_start = time.time()
+                    md = [
+                        {
+                            "id": str(result["frame_i"]),
+                            "window_title": frame_metadata["window_title"],
+                            "time": frame_metadata["time"],
+                        }
+                        for i in range(len(text))
+                    ]
                     try:
                         self.chromadb.add_texts(
                             texts=text,
-                            metadatas=[
-                                {
-                                    "id": str(result["frame_i"]),
-                                    "frame_metadata": json.dumps(frame_metadata),
-                                }
-                            ],
+                            metadatas=md,
                         )
+                        print("ADD TO DB TIME:", time.time() - add_db_start)
                     except Exception as e:
                         print("================aaaaaaa", e)
-
-                    print("ADD TO DB TIME:", time.time() - add_db_start)
+                        print("text", text)
+                        print("md", md)
+                        print("===============")
 
                 except Exception:
                     getting = False

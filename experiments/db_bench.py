@@ -3,7 +3,7 @@ import chromadb
 import os
 import time
 
-NB_WORDS = 1000
+NB_WORDS = 100
 
 word_file = "/usr/share/dict/words"
 WORDS = open(word_file).read().splitlines()

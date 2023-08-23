@@ -24,12 +24,12 @@ class Query:
         return self.chromadb.similarity_search(input, n_results=nb_results)
 
     # TODO score threshold seems high
-    def search(self, input, nb_results=10, score_threshold=20):
+    def search(self, input, nb_results=20, score_threshold=20):
         results = self.query_db(input, nb_results=nb_results)
         ids = []
         for doc in results:
             ids.append(doc.metadata["id"])
-            print(doc.metadata["frame_metadata"])
+            # print(doc.metadata["frame_metadata"])
 
         final_results = {}
         for i, frame_id in enumerate(ids):

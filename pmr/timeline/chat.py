@@ -154,13 +154,18 @@ class Chat:
             print("done")
             md = {}
             for doc in docs:
-                frame_metadata = json.loads(doc.metadata["frame_metadata"])
+                # frame_metadata = json.loads(doc.metadata["frame_metadata"])
                 frame_id = doc.metadata["id"]
+                window_title = doc.metadata["id"]
+                date = doc.metadata["time"]
                 md[frame_id] = {
-                    "window_title": frame_metadata["window_title"],
-                    "date": frame_metadata["time"],
+                    "window_title": window_title,
+                    "date": date,
                 }
 
+            # TODO find a way to give the relevant context
+            # now, each document is a sentence, so the context is too small.
+            # Need to aggregate content of the retrieved page and give it as context
             result = self.qa(inputs={"question": inp, "md": md})
             result = json.loads(result["answer"])
             print("Answer:", result["answer"])
