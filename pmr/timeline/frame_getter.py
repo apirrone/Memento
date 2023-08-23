@@ -81,22 +81,22 @@ class FrameGetter:
                 text = entry["text"]
 
                 red_rect = np.ones((h, w, 3), dtype=np.uint8)
-                red_rect[:, :, 2] = 0
+                red_rect[:, :, 0] = 0
                 red_rect *= 200
                 sub_img = frame[y : y + h, x : x + w]
                 res = cv2.addWeighted(sub_img, 0.5, red_rect, 0.5, 1.0)
                 if res is None:
                     continue
                 frame[y : y + h, x : x + w] = res
-                frame = cv2.putText(
-                    frame,
-                    text,
-                    (x, y+10),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    (0, 0, 0),
-                    2,
-                )
+                # frame = cv2.putText(
+                #     frame,
+                #     text,
+                #     (x, y+10),
+                #     cv2.FONT_HERSHEY_SIMPLEX,
+                #     0.5,
+                #     (0, 0, 0),
+                #     2,
+                # )
             frame = cv2.putText(
                 frame,
                 f"{self.nb_results} results",
