@@ -92,6 +92,9 @@ class Background:
             if diffscore < 0.1:  # TODO tune this
                 results = []
                 print("Skipping frame", frame_i, "because of imgdiff score ", diffscore)
+            elif window_title == "pmr-timeline":
+                results = []
+                print("Skipping frame", frame_i, "because looking at the timeline")
             else:
                 start = time.time()
                 results = ocr.process_image(im)
