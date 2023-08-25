@@ -14,7 +14,7 @@ box = (280, 290, 1700, 560)
 # with PyTessBaseAPI(psm=PSM.OSD_ONLY, oem=OEM.LSTM_ONLY) as api:
 api = PyTessBaseAPI(psm=11, oem=3)
 
-for img in imgs:
+for idx, img in enumerate(imgs):
     start = time.time()
     origIm = cv2.imread(img)
     im = cv2.cvtColor(origIm, cv2.COLOR_BGR2RGB)
@@ -48,16 +48,17 @@ for img in imgs:
     res = []
     bboxes = np.array(bboxes)
 
-    xycut = XYCut(bboxes, origIm.shape)
-    tmp = xycut.draw_bboxes(origIm)
-    a = time.time()
-    xycut.cut(max_depth=2)
-    print("cut time: ", time.time() - a)
-    tmp = xycut.draw(tmp, 2)
-    Image.fromarray(cv2.cvtColor(tmp, cv2.COLOR_BGR2RGB)).show()
+    # xycut = XYCut(bboxes, origIm.shape)
+    # tmp = xycut.draw_bboxes(origIm)
+    # a = time.time()
+    # xycut.cut(max_depth=2)
+    # print("cut time: ", time.time() - a)
+    # tmp = xycut.draw(tmp, 2)
+    # Image.fromarray(cv2.cvtColor(tmp, cv2.COLOR_BGR2RGB)).show()
 
-    print("one image time: ", time.time() - start)
-    # res = draw_results(results, origIm)
-    # Image.fromarray(cv2.cvtColor(res, cv2.COLOR_BGR2RGB)).show()
-    input("...")
-    print("====")
+    # print("one image time: ", time.time() - start)
+    res = draw_results(results, origIm)
+    Image.fromarray(cv2.cvtColor(res, cv2.COLOR_BGR2RGB)).show()
+    pickle.dump(bboxes, open("bboxes"+str(idx)+".pkl", "wb"))
+    # input("...")
+    # print("====")
