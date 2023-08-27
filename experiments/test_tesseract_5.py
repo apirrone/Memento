@@ -5,7 +5,7 @@ from tesserocr import PyTessBaseAPI, RIL
 from pmr.utils import draw_results
 import numpy as np
 import pickle
-from xycut import XYCut
+from grid_seg import GridSeg
 
 imgs = ["0.png", "1.png", "2.png", "3.png", "4.png"]
 # imgs = ["0.png"]
@@ -48,17 +48,8 @@ for idx, img in enumerate(imgs):
     res = []
     bboxes = np.array(bboxes)
 
-    # xycut = XYCut(bboxes, origIm.shape)
-    # tmp = xycut.draw_bboxes(origIm)
-    # a = time.time()
-    # xycut.cut(max_depth=2)
-    # print("cut time: ", time.time() - a)
-    # tmp = xycut.draw(tmp, 2)
-    # Image.fromarray(cv2.cvtColor(tmp, cv2.COLOR_BGR2RGB)).show()
+    results = GridSeg(bboxes, 100, origIm.shape).final(results)
+    final = draw_results(results, origIm)
 
-    # print("one image time: ", time.time() - start)
-    res = draw_results(results, origIm)
-    Image.fromarray(cv2.cvtColor(res, cv2.COLOR_BGR2RGB)).show()
-    pickle.dump(bboxes, open("bboxes"+str(idx)+".pkl", "wb"))
-    # input("...")
-    # print("====")
+    Image.fromarray(cv2.cvtColor(final, cv2.COLOR_BGR2RGB)).show()
+    input("...")

@@ -10,6 +10,7 @@ import pmr.utils as utils
 from pmr.texttron_wrapper import TexttronWrapper
 from tesserocr import PyTessBaseAPI
 from PIL import Image
+from pmr.grid_seg import GridSeg
 
 
 class OCR:
@@ -137,9 +138,11 @@ class TextronTesseract(OCR):
                 "w": int(x2 - x1) // self.rf,
                 "h": int(y2 - y1) // self.rf,
                 "text": ocrResult,
-                "conf" : 100
+                "conf": 100,
             }
             results.append(entry)
+
+        results = GridSeg(bboxes, 100, im.shape).final(results)
 
         return results
 
