@@ -105,7 +105,7 @@ class GridSeg:
             for entry in entries:
                 bbox = (entry["x"], entry["y"], entry["w"], entry["h"])
                 if self.intersects(region, bbox):
-                    final[-1]["text"] += entry["text"] + " "
+                    final[-1]["text"] += entry["text"] + '\n'
         
         return final
 

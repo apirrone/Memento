@@ -88,15 +88,15 @@ class FrameGetter:
                 if res is None:
                     continue
                 frame[y : y + h, x : x + w] = res
-                # frame = cv2.putText(
-                #     frame,
-                #     text,
-                #     (x, y+10),
-                #     cv2.FONT_HERSHEY_SIMPLEX,
-                #     0.5,
-                #     (0, 0, 0),
-                #     2,
-                # )
+                frame = cv2.putText(
+                    frame,
+                    text,
+                    (x, y + 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 0, 0),
+                    2,
+                )
             frame = cv2.putText(
                 frame,
                 f"{self.nb_results} results",

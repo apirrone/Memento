@@ -1,6 +1,7 @@
 import cv2
 from PIL import Image
 from tesserocr import PyTessBaseAPI, RIL
+from pmr.grid_seg import GridSeg
 
 
 class OCR:
@@ -50,13 +51,14 @@ class Tesseract(OCR):
         self.api = PyTessBaseAPI(psm=11, oem=3)
 
     def process_image(self, im):
+        im_shape = im.shape
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
         im = cv2.resize(im, (0, 0), fx=self.rf, fy=self.rf)
         im = Image.fromarray(im)
         self.api.SetImage(im)
         boxes = self.api.GetComponentImages(RIL.TEXTLINE, True)
         results = []
-
+        _bboxes = []
         for i, (im, box, _, _) in enumerate(boxes):
             self.api.SetRectangle(box["x"], box["y"], box["w"], box["h"])
 
@@ -74,7 +76,11 @@ class Tesseract(OCR):
                 "text": ocrResult,
                 "conf": conf,
             }
+        
+            _bboxes.append([entry["x"], entry["y"], entry["w"], entry["h"]])
 
             results.append(entry)
+        
+        results = GridSeg(_bboxes, 100, im_shape).final(results)
 
         return results
