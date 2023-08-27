@@ -54,9 +54,10 @@ class Timeline:
         found = False
         ret_frame = None
         mouse_wheel = 0
-        for event in pygame.event.get():
-            found = self.search_bar.event(event)
-            ret_frame = self.chat.event(event)
+        events = pygame.event.get()
+        found = self.search_bar.events(events)
+        ret_frame = self.chat.events(events)
+        for event in events:
             if event.type == pygame.MOUSEWHEEL:
                 mouse_wheel = event.x - event.y
                 if not self.ctrl_pressed:
@@ -100,10 +101,11 @@ class Timeline:
                             2,
                         )
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    self.time_bar.move_cursor(-1)
-                if event.key == pygame.K_RIGHT:
-                    self.time_bar.move_cursor(1)
+                if not self.chat.active and not self.search_bar.active:
+                    if event.key == pygame.K_LEFT:
+                        self.time_bar.move_cursor(-1)
+                    if event.key == pygame.K_RIGHT:
+                        self.time_bar.move_cursor(1)
                 if event.key == pygame.K_ESCAPE:
                     self.region_selector.reset()
                     self.frame_getter.clear_annotations()
