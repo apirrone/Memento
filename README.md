@@ -31,6 +31,12 @@ $ sudo apt install tesseract-ocr-eng
 $ sudo apt install tesseract-ocr-fra
 ```
 
+You also need to set an environment variable :
+(This is the path on my system, it may be different on yours)
+```console
+export TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata/
+```
+
 ## Usage
 ### Background process
 Run in a terminal  
