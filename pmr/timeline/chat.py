@@ -12,6 +12,7 @@ import json
 import pmr.timeline.text_utils as text_utils
 import pmr.utils as utils
 import cv2
+import pygame_textinput
 
 
 # Chat window on the right of the screen
@@ -28,7 +29,7 @@ class Chat:
         self.h = ws[1]
 
         self.active = False
-        self.input = ""
+        self.textinput = pygame_textinput.TextInputManager()
         self.font_size = 20
         self.font = pygame.font.SysFont("Arial", self.font_size)
 
@@ -140,7 +141,7 @@ class Chat:
 
     def deactivate(self):
         self.active = False
-        self.input = ""
+        self.textinput.value = ""
 
     def process_chat_query(self):
         print("Starting chat query process")
@@ -172,36 +173,35 @@ class Chat:
             print("frames_ids:", result["frames_ids"])
             self.answer_queue.put(result)
 
-    def event(self, event):
+    def events(self, events):
         if not self.active:
             return None
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                self.deactivate()
-            elif event.key == pygame.K_BACKSPACE:
-                self.input = self.input[:-1]
-            elif event.key == pygame.K_RETURN:
-                self.query_llm()
-            else:
-                try:
+
+        self.textinput.update(events)
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.deactivate()
+                # elif event.key == pygame.K_BACKSPACE:
+                #     self.input = self.input[:-1]
+                elif event.key == pygame.K_RETURN:
+                    self.query_llm()
+                else:
                     self.input_changed = True
-                    self.input += chr(event.key)
-                except Exception:
-                    pass
-            return None
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if self.frame_peek_hovered_id is not None:
-                return self.frame_peek_hovered_id
+                return None
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if self.frame_peek_hovered_id is not None:
+                    return self.frame_peek_hovered_id
 
     def query_llm(self):
-        if len(self.input) > 0:
+        if len(self.textinput.value) > 0:
             chat_history_entry = {}
-            chat_history_entry["question"] = self.input
+            chat_history_entry["question"] = self.textinput.value
             chat_history_entry["answer"] = None
             chat_history_entry["frames"] = {}
             self.chat_history.append(chat_history_entry)
-            self.query_queue.put({"input": self.input})
-            self.input = ""
+            self.query_queue.put({"input": self.textinput.value})
+            self.textinput.value = ""
 
     def wrap_text_input(self, text, max_width):
         words = text.split(" ")
@@ -321,7 +321,7 @@ class Chat:
             prev_height += q_height + a_height + self.bubbles_vertical_space * 4
 
     def draw_input_box(self, screen):
-        text_lines = self.wrap_text_input(self.input, self.w)
+        text_lines = self.wrap_text_input(self.textinput.value, self.w)
         text_height = len(text_lines) * self.font_size
 
         pygame.draw.rect(

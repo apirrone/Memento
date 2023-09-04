@@ -50,7 +50,7 @@ class Tesseract(OCR):
         self.conf_threshold = conf_threshold
         self.api = PyTessBaseAPI(psm=11, oem=3)
 
-    def process_image(self, im):
+    def process_image(self, im, raw=False):
         im_shape = im.shape
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
         im = cv2.resize(im, (0, 0), fx=self.rf, fy=self.rf)
@@ -81,6 +81,7 @@ class Tesseract(OCR):
 
             results.append(entry)
         
-        results = GridSeg(_bboxes, 100, im_shape).final(results)
+        if not raw:
+            results = GridSeg(_bboxes, 100, im_shape).final(results)
 
         return results

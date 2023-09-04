@@ -1,5 +1,6 @@
 import pygame
 from pmr.query_db import Query
+import pygame_textinput
 
 
 class SearchBar:
@@ -12,16 +13,18 @@ class SearchBar:
         self.w = ws[0] - ws[0] // 5
         self.h = ws[1] // 20
         self.active = False
-        self.input = ""
         self.found = False
         self.input_changed = False
 
+        self.textinput = pygame_textinput.TextInputManager()
+
     def activate(self):
         self.active = True
+        self.textinput.value = ""
 
     def deactivate(self):
         self.active = False
-        self.input = ""
+        self.textinput.value = ""
         self.found = False
 
     def draw_bar(self, screen):
@@ -34,11 +37,11 @@ class SearchBar:
 
     def draw_text(self, screen):
         font = pygame.font.SysFont("Arial", self.h // 2)
-        text = font.render(self.input, True, (0, 0, 0))
+        text = font.render(self.textinput.value, True, (0, 0, 0))
         screen.blit(text, (self.x + 10, self.y + 10))
 
-        if len(self.input) > 0:
-            cursor_pos = font.size(self.input)[0] + 10
+        if len(self.textinput.value) > 0:
+            cursor_pos = font.size(self.textinput.value)[0] + 10
         else:
             cursor_pos = 10
 
@@ -63,7 +66,7 @@ class SearchBar:
     def start_query(self):
         print("start query")
         self.frame_getter.clear_annotations()
-        query_input = self.input
+        query_input = self.textinput.value
 
         results = Query().search(query_input, nb_results=5)
 
@@ -75,30 +78,25 @@ class SearchBar:
             self.found = False
             self.frame_getter.nb_results = -1
 
-    def event(self, event):
+    def events(self, events):
+        self.textinput.update(events)
         ret = False
-        if event.type == pygame.KEYDOWN:
-            if event.mod & pygame.KMOD_CTRL and event.key == pygame.K_f:
-                if self.active:
-                    self.input = ""
-                self.activate()
-                self.input_changed = False
-            elif event.key == pygame.K_ESCAPE:
-                self.deactivate()
-            elif event.key == pygame.K_BACKSPACE:
-                self.input = self.input[:-1]
-                self.input_changed = True
-            elif event.key == pygame.K_RETURN:
-                if self.active and len(self.input) > 0:
-                    if self.input_changed or not self.found:
-                        self.start_query()
-                    if self.found:
-                        ret = True
-                self.input_changed = False
-            elif self.active:
-                try:
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.mod & pygame.KMOD_CTRL and event.key == pygame.K_f:
+                    self.activate()
+                    self.input_changed = False
+                elif event.key == pygame.K_ESCAPE:
+                    self.deactivate()
+                elif event.key == pygame.K_BACKSPACE:
                     self.input_changed = True
-                    self.input += chr(event.key)
-                except Exception:
-                    pass
+                elif event.key == pygame.K_RETURN:
+                    if self.active and len(self.textinput.value) > 0:
+                        if self.input_changed or not self.found:
+                            self.start_query()
+                        if self.found:
+                            ret = True
+                    self.input_changed = False
+                elif self.active:
+                    self.input_changed = True
         return ret
