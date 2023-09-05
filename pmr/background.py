@@ -1,7 +1,6 @@
 import mss
 import numpy as np
 import cv2
-from langchain.vectorstores import Chroma
 import json
 import datetime
 import pmr.utils as utils
@@ -14,6 +13,9 @@ import signal
 from pmr.OCR import Tesseract
 from pmr.caching import MetadataCache
 from langchain.embeddings.openai import OpenAIEmbeddings
+
+# from langchain.vectorstores import Chroma
+import sqlite3
 
 
 class Background:
@@ -46,11 +48,12 @@ class Background:
         self.metadata_cache = MetadataCache(self.cache_path)
 
         os.makedirs(self.cache_path, exist_ok=True)
-        self.chromadb = Chroma(
-            persist_directory=self.cache_path,
-            embedding_function=OpenAIEmbeddings(),
-            collection_name="pmr_db",
-        )
+        self.init_db()
+        # self.chromadb = Chroma(
+        #     persist_directory=self.cache_path,
+        #     embedding_function=OpenAIEmbeddings(),
+        #     collection_name="pmr_db",
+        # )
 
         self.sct = mss.mss()
         self.rec = utils.Recorder(
@@ -72,6 +75,25 @@ class Background:
         for i in range(self.nb_workers):
             self.workers[i].start()
             print("started worker", i)
+
+    def init_db(self):
+        db_path = os.path.join(self.cache_path, "pmr.db")
+        create_tables = False
+        if not os.path.isfile(db_path):
+            create_tables = True
+        self.db = sqlite3.connect(db_path)
+
+        if not create_tables:
+            return self.db
+
+        self.db.execute(
+            """CREATE TABLE FRAME
+                (ID INT PRIMARY KEY NOT NULL,
+                VIDEO_ID INT NOT NULL,
+                WINDOW_TITLE TEXT NOT NULL,
+                TIME DATETIME NOT NULL);
+        """
+        )
 
     def process_images(self):
         # Infinite worker
@@ -191,10 +213,10 @@ class Background:
                         for i in range(len(text))
                     ]
                     try:
-                        self.chromadb.add_texts(
-                            texts=text,
-                            metadatas=md,
-                        )
+                        # self.chromadb.add_texts(
+                        #     texts=text,
+                        #     metadatas=md,
+                        # )
                         print("ADD TO DB TIME:", time.time() - add_db_start)
                     except Exception as e:
                         print("================aaaaaaa", e)
