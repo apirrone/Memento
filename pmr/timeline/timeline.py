@@ -8,6 +8,7 @@ import pmr.utils as utils
 import pyperclip
 from pmr.timeline.ui import PopUpManager, Plot
 import time
+from pmr.db import Db
 
 
 class Timeline:

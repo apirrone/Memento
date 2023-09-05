@@ -1,11 +1,13 @@
 import pygame
-from pmr.query_db import Query
+# from pmr.query_db import Query
 import pygame_textinput
+from pmr.db import Db
 
 
 class SearchBar:
     def __init__(self, frame_getter):
         self.frame_getter = frame_getter
+        self.db = Db()
 
         ws = self.frame_getter.window_size
         self.x = ws[0] // 10
@@ -68,7 +70,8 @@ class SearchBar:
         self.frame_getter.clear_annotations()
         query_input = self.textinput.value
 
-        results = Query().search(query_input, nb_results=5)
+        # results = Query().search(query_input, nb_results=5)
+        results = self.db.search(query_input)
 
         self.frame_getter.set_annotation(results)
         if len(results) > 0:

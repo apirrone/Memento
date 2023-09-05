@@ -2,7 +2,7 @@ import pygame
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
-from langchain.vectorstores import Chroma
+# from langchain.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.embeddings import OpenAIEmbeddings
 import os
@@ -81,16 +81,16 @@ class Chat:
         #         }
         #     )
 
-        self.chromadb = Chroma(
-            persist_directory=self.cache_path,
-            embedding_function=OpenAIEmbeddings(),
-            collection_name="pmr_db",
-        )
+        # self.chromadb = Chroma(
+        #     persist_directory=self.cache_path,
+        #     embedding_function=OpenAIEmbeddings(),
+        #     collection_name="pmr_db",
+        # )
 
-        self.memory = ConversationBufferMemory(
-            memory_key="chat_history", return_messages=True, input_key="question"
-        )
-        self.retriever = self.chromadb.as_retriever()
+        # self.memory = ConversationBufferMemory(
+        #     memory_key="chat_history", return_messages=True, input_key="question"
+        # )
+        # self.retriever = self.chromadb.as_retriever()
 
         # Define prompt
         template = """Use the following pieces of context and metadata to answer the question at the end. Answer in the same language the question was asked.
@@ -117,13 +117,13 @@ class Chat:
         #     memory=self.memory,
         #     verbose=True,
         # )
-        self.qa = ConversationalRetrievalChain.from_llm(
-            ChatOpenAI(model_name="gpt-4", temperature=0.8),
-            self.retriever,
-            memory=self.memory,
-            verbose=True,
-            combine_docs_chain_kwargs={"prompt": prompt},
-        )
+        # self.qa = ConversationalRetrievalChain.from_llm(
+        #     ChatOpenAI(model_name="gpt-4", temperature=0.8),
+        #     self.retriever,
+        #     memory=self.memory,
+        #     verbose=True,
+        #     combine_docs_chain_kwargs={"prompt": prompt},
+        # )
 
         self.query_queue = Queue()
         self.answer_queue = Queue()

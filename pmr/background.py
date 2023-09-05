@@ -13,9 +13,8 @@ import signal
 from pmr.OCR import Tesseract
 from pmr.caching import MetadataCache
 from langchain.embeddings.openai import OpenAIEmbeddings
-
+from pmr.db import Db
 # from langchain.vectorstores import Chroma
-import sqlite3
 
 
 class Background:
@@ -48,7 +47,7 @@ class Background:
         self.metadata_cache = MetadataCache(self.cache_path)
 
         os.makedirs(self.cache_path, exist_ok=True)
-        self.init_db()
+        self.db = Db()
         # self.chromadb = Chroma(
         #     persist_directory=self.cache_path,
         #     embedding_function=OpenAIEmbeddings(),
@@ -76,25 +75,6 @@ class Background:
             self.workers[i].start()
             print("started worker", i)
 
-    def init_db(self):
-        db_path = os.path.join(self.cache_path, "pmr.db")
-        create_tables = False
-        if not os.path.isfile(db_path):
-            create_tables = True
-        self.db = sqlite3.connect(db_path)
-
-        if not create_tables:
-            return self.db
-
-        self.db.execute(
-            """CREATE TABLE FRAME
-                (ID INT PRIMARY KEY NOT NULL,
-                VIDEO_ID INT NOT NULL,
-                WINDOW_TITLE TEXT NOT NULL,
-                TIME DATETIME NOT NULL);
-        """
-        )
-
     def process_images(self):
         # Infinite worker
 
@@ -119,7 +99,7 @@ class Background:
                 print("Skipping frame", frame_i, "because looking at the timeline")
             else:
                 start = time.time()
-                results = ocr.process_image(im)
+                results = ocr.process_image(im, raw=True)
                 print("Processing time :", time.time() - start)
 
             self.results_queue.put(
@@ -207,12 +187,17 @@ class Background:
                     md = [
                         {
                             "id": str(result["frame_i"]),
-                            "window_title": frame_metadata["window_title"],
-                            "time": frame_metadata["time"],
                         }
                         for i in range(len(text))
                     ]
                     try:
+                        self.db.add_texts(
+                            texts=text,
+                            bbs=bbs,
+                            frame_i=result["frame_i"],
+                            window_title=frame_metadata["window_title"],
+                            time=frame_metadata["time"]
+                        )
                         # self.chromadb.add_texts(
                         #     texts=text,
                         #     metadatas=md,

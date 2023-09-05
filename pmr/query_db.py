@@ -1,4 +1,4 @@
-import chromadb
+# import chromadb
 import os
 from thefuzz import fuzz
 from pmr.caching import MetadataCache
@@ -10,11 +10,12 @@ class Query:
     def __init__(self):
         self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
 
-        self.chromadb = Chroma(
-            persist_directory=self.cache_path,
-            embedding_function=OpenAIEmbeddings(),
-            collection_name="pmr_db",
-        )
+        # self.chromadb = Chroma(
+        #     persist_directory=self.cache_path,
+        #     embedding_function=OpenAIEmbeddings(),
+        #     collection_name="pmr_db",
+        # )
+        self.chromadb = None
         self.metadata_cache = MetadataCache(self.cache_path)
 
     def get_db(self):
