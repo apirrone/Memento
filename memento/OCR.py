@@ -1,7 +1,6 @@
 import cv2
 from PIL import Image
 from tesserocr import PyTessBaseAPI, RIL
-from memento.grid_seg import GridSeg
 
 
 class OCR:
@@ -50,7 +49,7 @@ class Tesseract(OCR):
         self.conf_threshold = conf_threshold
         self.api = PyTessBaseAPI(psm=11, oem=3)
 
-    def process_image(self, im, raw=False):
+    def process_image(self, im):
         im_shape = im.shape
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
         im = cv2.resize(im, (0, 0), fx=self.rf, fy=self.rf)
@@ -80,8 +79,5 @@ class Tesseract(OCR):
             _bboxes.append([entry["x"], entry["y"], entry["w"], entry["h"]])
 
             results.append(entry)
-
-        if not raw:
-            results = GridSeg(_bboxes, 100, im_shape).final(results)
 
         return results

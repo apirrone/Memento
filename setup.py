@@ -25,7 +25,9 @@ setup(
         "python-Levenshtein==0.21.1",
         "tesserocr==2.6.1",
         "pygame-textinput==1.0.1",
-        "pyperclip==1.8.2"
+        "pyperclip==1.8.2",
+        "Pillow==10.0.0",
+        "chromadb==0.4.9"
     ],
     entry_points={
         "console_scripts": [

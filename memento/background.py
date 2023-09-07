@@ -99,7 +99,7 @@ class Background:
                 print("Skipping frame", frame_i, "because looking at the timeline")
             else:
                 start = time.time()
-                results = ocr.process_image(im, raw=True)
+                results = ocr.process_image(im)
                 print("Processing time :", time.time() - start)
 
             self.results_queue.put(
