@@ -8,7 +8,7 @@ How it works:
 - The app takes a screenshot every 2 seconds
 - It compiles the screenshots into a h264 video segments for storage efficiency
 - It uses OCR to extract text from the images
-- It indexes the text in a sqlite3 database
+- It indexes the text in a sqlite3 database and a vectordb
 - It uses FTS5 to search the text
 - It uses a LLM (GPT through OpenAI's API) to chat with the timeline
 
