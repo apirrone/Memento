@@ -14,7 +14,7 @@ setup(
         "mss==9.0.1",
         "numpy==1.25.1",
         "opencv-contrib-python==4.8.0.74",
-        "chromadb==0.4.3",
+        # "chromadb==0.4.3",
         # "pytesseract==0.3.10",
         "xlib==0.21",
         "av==10.0.0",

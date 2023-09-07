@@ -1,7 +1,6 @@
 import mss
 import numpy as np
 import cv2
-from langchain.vectorstores import Chroma
 import json
 import datetime
 import pmr.utils as utils
@@ -14,6 +13,8 @@ import signal
 from pmr.OCR import Tesseract
 from pmr.caching import MetadataCache
 from langchain.embeddings.openai import OpenAIEmbeddings
+from pmr.db import Db
+from langchain.vectorstores import Chroma
 
 
 class Background:
@@ -46,6 +47,7 @@ class Background:
         self.metadata_cache = MetadataCache(self.cache_path)
 
         os.makedirs(self.cache_path, exist_ok=True)
+        self.db = Db()
         self.chromadb = Chroma(
             persist_directory=self.cache_path,
             embedding_function=OpenAIEmbeddings(),
@@ -97,7 +99,7 @@ class Background:
                 print("Skipping frame", frame_i, "because looking at the timeline")
             else:
                 start = time.time()
-                results = ocr.process_image(im)
+                results = ocr.process_image(im, raw=True)
                 print("Processing time :", time.time() - start)
 
             self.results_queue.put(
@@ -164,6 +166,7 @@ class Background:
                     result = self.results_queue.get(False)
                     bbs = []
                     text = []
+                    all_text = ""
                     for i in range(len(result["results"])):
                         bb = {}
                         bb["x"] = result["results"][i]["x"]
@@ -172,6 +175,7 @@ class Background:
                         bb["h"] = result["results"][i]["h"]
                         text.append(result["results"][i]["text"])
                         bbs.append(bb)
+                        all_text += result["results"][i]["text"] + " "
 
                     frame_metadata = self.metadata_cache.get_frame_metadata(
                         result["frame_i"]
@@ -181,18 +185,24 @@ class Background:
                     self.metadata_cache.write(result["frame_i"], frame_metadata)
                     if len(text) == 0:
                         continue
-                    add_db_start = time.time()
                     md = [
                         {
                             "id": str(result["frame_i"]),
-                            "window_title": frame_metadata["window_title"],
-                            "time": frame_metadata["time"],
+                            "time": result["time"],
+                            "window_title": result["window_title"],
                         }
-                        for i in range(len(text))
                     ]
+                    add_db_start = time.time()
                     try:
-                        self.chromadb.add_texts(
+                        self.db.add_texts(
                             texts=text,
+                            bbs=bbs,
+                            frame_i=result["frame_i"],
+                            window_title=frame_metadata["window_title"],
+                            time=frame_metadata["time"]
+                        )
+                        self.chromadb.add_texts(
+                            texts=[all_text],
                             metadatas=md,
                         )
                         print("ADD TO DB TIME:", time.time() - add_db_start)

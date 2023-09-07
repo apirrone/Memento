@@ -14,3 +14,4 @@ experiments/test_modal_donut/__pycache__/*
 experiments/__pycache__/*
 *.pkl
 *.txt
+*.db
