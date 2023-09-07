@@ -2,7 +2,7 @@ import pygame
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
-# from langchain.vectorstores import Chroma
+from langchain.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.embeddings import OpenAIEmbeddings
 import os
@@ -81,23 +81,23 @@ class Chat:
         #         }
         #     )
 
-        # self.chromadb = Chroma(
-        #     persist_directory=self.cache_path,
-        #     embedding_function=OpenAIEmbeddings(),
-        #     collection_name="pmr_db",
-        # )
+        self.chromadb = Chroma(
+            persist_directory=self.cache_path,
+            embedding_function=OpenAIEmbeddings(),
+            collection_name="pmr_db",
+        )
 
-        # self.memory = ConversationBufferMemory(
-        #     memory_key="chat_history", return_messages=True, input_key="question"
-        # )
-        # self.retriever = self.chromadb.as_retriever()
+        self.memory = ConversationBufferMemory(
+            memory_key="chat_history", return_messages=True, input_key="question"
+        )
+        self.retriever = self.chromadb.as_retriever()
 
         # Define prompt
         template = """Use the following pieces of context and metadata to answer the question at the end. Answer in the same language the question was asked.
         If you don't know the answer, just say that you don't know, don't try to make up an answer.
         You will format your answer in json, with the keys "answer" and "frames_ids". 
         The value of "answer" will be the answer to the question, and the value of "frames_ids" will be a list of frame_ids from which you got the information from using the metadata.
-        Use three sentences maximum and keep the answer as concise as possible.
+        Try to keep the answer concise, but don't cut out important information.
 
         Context: {context}
         Question: {question}
@@ -117,13 +117,13 @@ class Chat:
         #     memory=self.memory,
         #     verbose=True,
         # )
-        # self.qa = ConversationalRetrievalChain.from_llm(
-        #     ChatOpenAI(model_name="gpt-4", temperature=0.8),
-        #     self.retriever,
-        #     memory=self.memory,
-        #     verbose=True,
-        #     combine_docs_chain_kwargs={"prompt": prompt},
-        # )
+        self.qa = ConversationalRetrievalChain.from_llm(
+            ChatOpenAI(model_name="gpt-4", temperature=0.8),
+            self.retriever,
+            memory=self.memory,
+            verbose=True,
+            combine_docs_chain_kwargs={"prompt": prompt},
+        )
 
         self.query_queue = Queue()
         self.answer_queue = Queue()

@@ -14,7 +14,7 @@ from pmr.OCR import Tesseract
 from pmr.caching import MetadataCache
 from langchain.embeddings.openai import OpenAIEmbeddings
 from pmr.db import Db
-# from langchain.vectorstores import Chroma
+from langchain.vectorstores import Chroma
 
 
 class Background:
@@ -48,11 +48,11 @@ class Background:
 
         os.makedirs(self.cache_path, exist_ok=True)
         self.db = Db()
-        # self.chromadb = Chroma(
-        #     persist_directory=self.cache_path,
-        #     embedding_function=OpenAIEmbeddings(),
-        #     collection_name="pmr_db",
-        # )
+        self.chromadb = Chroma(
+            persist_directory=self.cache_path,
+            embedding_function=OpenAIEmbeddings(),
+            collection_name="pmr_db",
+        )
 
         self.sct = mss.mss()
         self.rec = utils.Recorder(
@@ -166,6 +166,7 @@ class Background:
                     result = self.results_queue.get(False)
                     bbs = []
                     text = []
+                    all_text = ""
                     for i in range(len(result["results"])):
                         bb = {}
                         bb["x"] = result["results"][i]["x"]
@@ -174,6 +175,7 @@ class Background:
                         bb["h"] = result["results"][i]["h"]
                         text.append(result["results"][i]["text"])
                         bbs.append(bb)
+                        all_text += result["results"][i]["text"] + " "
 
                     frame_metadata = self.metadata_cache.get_frame_metadata(
                         result["frame_i"]
@@ -183,13 +185,14 @@ class Background:
                     self.metadata_cache.write(result["frame_i"], frame_metadata)
                     if len(text) == 0:
                         continue
-                    add_db_start = time.time()
                     md = [
                         {
                             "id": str(result["frame_i"]),
+                            "time": result["time"],
+                            "window_title": result["window_title"],
                         }
-                        for i in range(len(text))
                     ]
+                    add_db_start = time.time()
                     try:
                         self.db.add_texts(
                             texts=text,
@@ -198,10 +201,10 @@ class Background:
                             window_title=frame_metadata["window_title"],
                             time=frame_metadata["time"]
                         )
-                        # self.chromadb.add_texts(
-                        #     texts=text,
-                        #     metadatas=md,
-                        # )
+                        self.chromadb.add_texts(
+                            texts=[all_text],
+                            metadatas=md,
+                        )
                         print("ADD TO DB TIME:", time.time() - add_db_start)
                     except Exception as e:
                         print("================aaaaaaa", e)
