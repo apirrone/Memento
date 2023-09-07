@@ -1,5 +1,5 @@
 import av
-from pmr.utils import FPS, SECONDS_PER_REC, FRAME_CACHE_SIZE
+from memento.utils import FPS, SECONDS_PER_REC, FRAME_CACHE_SIZE
 import time
 import os
 import json

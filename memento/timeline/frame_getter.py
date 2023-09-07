@@ -1,7 +1,7 @@
 import os
 from glob import glob
-import pmr.utils as utils
-from pmr.caching import ReadersCache, MetadataCache
+import memento.utils as utils
+from memento.caching import ReadersCache, MetadataCache
 import cv2
 import numpy as np
 
@@ -10,7 +10,7 @@ class FrameGetter:
     def __init__(self, window_size):
         self.window_size = window_size
 
-        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
+        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "memento")
         self.readers_cache = ReadersCache(self.cache_path)
         self.metadata_cache = MetadataCache(self.cache_path)
         self.annotations = {}

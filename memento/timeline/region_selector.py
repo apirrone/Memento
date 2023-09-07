@@ -1,5 +1,5 @@
 import pygame
-from pmr.OCR import Tesseract
+from memento.OCR import Tesseract
 import cv2
 
 

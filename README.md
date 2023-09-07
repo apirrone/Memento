@@ -1,17 +1,24 @@
-# Poor man's rewind.ai
+# Memento (working title)
 
-A reimplementation or rewind.ai using chromadb
+Memento is a Python app that records everything you do on your computer and lets you go back in time, search, and chat with a LLM (Large Language Model) to find back information about what you did.
 
-https://github.com/apirrone/poor_mans_rewind/assets/6552564/e48a6415-ed9c-46c0-bac1-6a364044372e
+How it works:
+- The app takes a screenshot every 2 seconds
+- It compiles the screenshots into a h264 video segments for storage efficiency
+- It uses OCR to extract text from the images
+- It indexes the text in a sqlite3 database
+- It uses FTS5 to search the text
+- It uses a LLM (GPT through OpenAI's API) to chat with the timeline
 
 
-https://github.com/apirrone/poor_mans_rewind/assets/6552564/f2f42333-df4f-4d5a-affb-4db0f1ca6be0
+This project is heavily inspired by [rewind.ai](https://rewind.ai/)
+
+TODO Demo video
 
 
+## Installation
 
-
-
-## Install
+This project was tested on Ubuntu 22.04.
 
 ```console
 $ pip install -e .
@@ -41,23 +48,17 @@ export TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata/
 ### Background process
 Run in a terminal  
 ```console
-$ pmr-bg
+$ memento-bg
 ```
 
-### Timeline mode: 
+### Show the timeline:
 
 ```console
-$ pmr-timeline
+$ memento-timeline
 ```
 
 Then use `ctrl+f` to search.
 
 If you want to chat with the timeline through a llm, you need an openai api key in your env as `OPENAI_API_KEY`.
 Then use `ctrl+t` to open the chatbox.
-
-
-## TODO / Ideas
-- langchain llm to chat with the timeline
-- summary of your day (?)
-- activity stats
   

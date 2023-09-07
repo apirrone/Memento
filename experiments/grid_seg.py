@@ -1,4 +1,3 @@
-import pickle
 import numpy as np
 import cv2
 
@@ -105,7 +104,7 @@ class GridSeg:
             for entry in entries:
                 bbox = (entry["x"], entry["y"], entry["w"], entry["h"])
                 if self.intersects(region, bbox):
-                    final[-1]["text"] += entry["text"] + '\n'
+                    final[-1]["text"] += entry["text"] + " "
         
         return final
 

@@ -1,14 +1,13 @@
 import pygame
-from pmr.timeline.frame_getter import FrameGetter
-from pmr.timeline.time_bar import TimeBar
-from pmr.timeline.search_bar import SearchBar
-from pmr.timeline.region_selector import RegionSelector
-from pmr.timeline.chat import Chat
-import pmr.utils as utils
+from memento.timeline.frame_getter import FrameGetter
+from memento.timeline.time_bar import TimeBar
+from memento.timeline.search_bar import SearchBar
+from memento.timeline.region_selector import RegionSelector
+from memento.timeline.chat import Chat
+import memento.utils as utils
 import pyperclip
-from pmr.timeline.ui import PopUpManager, Plot
+from memento.timeline.ui import PopUpManager, Plot
 import time
-from pmr.db import Db
 
 
 class Timeline:
@@ -51,6 +50,7 @@ class Timeline:
         surf = pygame.surfarray.make_surface(frame).convert()
         self.screen.blit(surf, (0, 0))
 
+    # TODO This is a mess
     def handle_inputs(self):
         found = False
         ret_frame = None
@@ -134,13 +134,7 @@ class Timeline:
                             (50, 70),
                             2,
                         )
-                    # if event.key == pygame.K_u:
-                    #     self.update()
-                    #     self.popup_manager.add_popup(
-                    #         "Updating ...",
-                    #         (50, 70),
-                    #         2,
-                    #     )
+
                     if event.key == pygame.K_t:
                         self.chat.activate()
                         self.search_bar.deactivate()

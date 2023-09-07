@@ -3,26 +3,26 @@ import numpy as np
 import cv2
 import json
 import datetime
-import pmr.utils as utils
+import memento.utils as utils
 import asyncio
 import os
 import time
 import multiprocessing
 from multiprocessing import Queue
 import signal
-from pmr.OCR import Tesseract
-from pmr.caching import MetadataCache
+from memento.OCR import Tesseract
+from memento.caching import MetadataCache
 from langchain.embeddings.openai import OpenAIEmbeddings
-from pmr.db import Db
+from memento.db import Db
 from langchain.vectorstores import Chroma
 
 
 class Background:
     def __init__(self):
-        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
+        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "memento")
 
         if os.path.exists(os.path.join(self.cache_path, "0.json")):
-            print("EXISTING PMR CACHE FOUND")
+            print("EXISTING MEMENTO CACHE FOUND")
             print("Continue this recording or erase and start over ? ")
             print("1. Continue")
             print("2. Erase and start over")
@@ -51,7 +51,7 @@ class Background:
         self.chromadb = Chroma(
             persist_directory=self.cache_path,
             embedding_function=OpenAIEmbeddings(),
-            collection_name="pmr_db",
+            collection_name="memento_db",
         )
 
         self.sct = mss.mss()
@@ -94,12 +94,12 @@ class Background:
             if diffscore < 0.1:  # TODO tune this
                 results = []
                 print("Skipping frame", frame_i, "because of imgdiff score ", diffscore)
-            elif window_title == "pmr-timeline":
+            elif window_title == "memento-timeline":
                 results = []
                 print("Skipping frame", frame_i, "because looking at the timeline")
             else:
                 start = time.time()
-                results = ocr.process_image(im, raw=True)
+                results = ocr.process_image(im)
                 print("Processing time :", time.time() - start)
 
             self.results_queue.put(
@@ -110,8 +110,6 @@ class Background:
                     "window_title": window_title,
                 }
             )
-
-            # cv2.imwrite(str(frame_i) + ".png", utils.draw_results(results, im))
 
     def stop_rec(self, sig, frame):
         # self.rec.stop()
@@ -199,7 +197,7 @@ class Background:
                             bbs=bbs,
                             frame_i=result["frame_i"],
                             window_title=frame_metadata["window_title"],
-                            time=frame_metadata["time"]
+                            time=frame_metadata["time"],
                         )
                         self.chromadb.add_texts(
                             texts=[all_text],
