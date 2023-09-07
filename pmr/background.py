@@ -111,8 +111,6 @@ class Background:
                 }
             )
 
-            # cv2.imwrite(str(frame_i) + ".png", utils.draw_results(results, im))
-
     def stop_rec(self, sig, frame):
         # self.rec.stop()
         print("STOPPING MAIN", os.getpid())
@@ -199,7 +197,7 @@ class Background:
                             bbs=bbs,
                             frame_i=result["frame_i"],
                             window_title=frame_metadata["window_title"],
-                            time=frame_metadata["time"]
+                            time=frame_metadata["time"],
                         )
                         self.chromadb.add_texts(
                             texts=[all_text],

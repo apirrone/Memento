@@ -6,7 +6,6 @@ import asyncio
 import cv2
 import numpy as np
 import os
-import subprocess
 
 FPS = 0.5
 SECONDS_PER_REC = 10

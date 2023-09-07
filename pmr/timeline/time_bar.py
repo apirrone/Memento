@@ -26,7 +26,6 @@ COLOR_PALETTE = [
 # TODO add more colors if needed ?
 
 
-# TODO metada cache too
 class TimeBar:
     def __init__(self, frame_getter):
         self.frame_getter = frame_getter
@@ -43,6 +42,7 @@ class TimeBar:
         self.w = ws[0] - self.x * 2
 
         self.min_tws = self.bar_border_trigger * 4
+
         # Time window size
         self.tws = min(self.nb_frames, int(10 * utils.FPS * utils.SECONDS_PER_REC))
         self.frame_offset = 0  # from the right

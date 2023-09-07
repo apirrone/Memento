@@ -8,7 +8,6 @@ import pmr.utils as utils
 import pyperclip
 from pmr.timeline.ui import PopUpManager, Plot
 import time
-from pmr.db import Db
 
 
 class Timeline:
@@ -51,6 +50,7 @@ class Timeline:
         surf = pygame.surfarray.make_surface(frame).convert()
         self.screen.blit(surf, (0, 0))
 
+    # TODO This is a mess
     def handle_inputs(self):
         found = False
         ret_frame = None
@@ -134,13 +134,7 @@ class Timeline:
                             (50, 70),
                             2,
                         )
-                    # if event.key == pygame.K_u:
-                    #     self.update()
-                    #     self.popup_manager.add_popup(
-                    #         "Updating ...",
-                    #         (50, 70),
-                    #         2,
-                    #     )
+
                     if event.key == pygame.K_t:
                         self.chat.activate()
                         self.search_bar.deactivate()

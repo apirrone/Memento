@@ -47,40 +47,6 @@ class Chat:
         self.frames_peeks_rects = {}
         self.frame_peek_hovered_id = None
 
-        # For debug
-        # for i in range(1):
-        #     frames = {"1": None, "2": None, "3": None}  # , "4": None, "5": None}
-        #     for frame_id in frames.keys():
-        #         frame = cv2.resize(
-        #             self.frame_getter.get_frame(int(frame_id)),
-        #             (self.frame_peek_w, self.frame_peek_w),
-        #         )
-        #         frame = pygame.surfarray.make_surface(frame)
-        #         frames[frame_id] = frame
-        #     self.chat_history.append(
-        #         {
-        #             "question": "What is the meaning of life ? alze jalzke jazle kjazlek ajzel akzej alzkej alzekjalze kjalzek jalzek ajzel kajezl akejalze ",
-        #             "answer": "42 aaakze azke az lekajzelajze alzkej alzek jalzekajel kajzelakzej alzekj alzkejaz e azj ejhalze jalze kjazle kazje",
-        #             "frames": frames,
-        #         }
-        #     )
-
-        # answer = """Answer: To use ConversationalRetrievalChain in LangChain, you may follow the steps below:
-
-        # 1. Create a conversation history variable: `chat_history = []`
-
-        # 2. Create a query: `query = "what did the president say about Ketanji Brown Jackson"`
-
-        # 3. Perform retrieval using the ConversationRetrievalChain:
-        # """
-        # for i in range(20):
-        #     self.chat_history.append(
-        #         {
-        #             "question": "How to use ConversationalRetrievalChain in LangChain ?",
-        #             "answer": answer,
-        #         }
-        #     )
-
         self.chromadb = Chroma(
             persist_directory=self.cache_path,
             embedding_function=OpenAIEmbeddings(),
@@ -97,7 +63,7 @@ class Chat:
         If you don't know the answer, just say that you don't know, don't try to make up an answer.
         You will format your answer in json, with the keys "answer" and "frames_ids". 
         The value of "answer" will be the answer to the question, and the value of "frames_ids" will be a list of frame_ids from which you got the information from using the metadata.
-        Try to keep the answer concise, but don't cut out important information.
+        Use three sentences maximum and keep the answer as concise as possible.
 
         Context: {context}
         Question: {question}
@@ -105,18 +71,10 @@ class Chat:
 
         Helpful Answer:"""
 
-        # prompt = PromptTemplate.from_template(template)
-
         prompt = PromptTemplate(
             input_variables=["question", "context", "md"], template=template
         )
 
-        # self.qa = ConversationalRetrievalChain.from_llm(
-        #     ChatOpenAI(model_name="gpt-4", temperature=0.8),
-        #     self.retriever,
-        #     memory=self.memory,
-        #     verbose=True,
-        # )
         self.qa = ConversationalRetrievalChain.from_llm(
             ChatOpenAI(model_name="gpt-4", temperature=0.8),
             self.retriever,
@@ -155,7 +113,6 @@ class Chat:
             print("done")
             md = {}
             for doc in docs:
-                # frame_metadata = json.loads(doc.metadata["frame_metadata"])
                 frame_id = doc.metadata["id"]
                 window_title = doc.metadata["id"]
                 date = doc.metadata["time"]
@@ -164,9 +121,6 @@ class Chat:
                     "date": date,
                 }
 
-            # TODO find a way to give the relevant context
-            # now, each document is a sentence, so the context is too small.
-            # Need to aggregate content of the retrieved page and give it as context
             result = self.qa(inputs={"question": inp, "md": md})
             result = json.loads(result["answer"])
             print("Answer:", result["answer"])
@@ -182,8 +136,6 @@ class Chat:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.deactivate()
-                # elif event.key == pygame.K_BACKSPACE:
-                #     self.input = self.input[:-1]
                 elif event.key == pygame.K_RETURN:
                     self.query_llm()
                 else:

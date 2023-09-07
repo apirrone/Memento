@@ -59,7 +59,7 @@ class BBoxes:
 
 
 class TexttronWrapper:
-    def __init__(self, im, xThreshold=5, yThreshold=2):
+    def __init__(self, im, xThreshold=10, yThreshold=30):
         self.im = im
         self.tt = TextTron(im, xThreshold=xThreshold, yThreshold=yThreshold)
         self.bboxes = self.convert(self.tt.textBBox)

@@ -1,5 +1,4 @@
 import pygame
-# from pmr.query_db import Query
 import pygame_textinput
 from pmr.db import Db
 
@@ -70,7 +69,6 @@ class SearchBar:
         self.frame_getter.clear_annotations()
         query_input = self.textinput.value
 
-        # results = Query().search(query_input, nb_results=5)
         results = self.db.search(query_input)
 
         self.frame_getter.set_annotation(results)

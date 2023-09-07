@@ -15,7 +15,6 @@ setup(
         "numpy==1.25.1",
         "opencv-contrib-python==4.8.0.74",
         # "chromadb==0.4.3",
-        # "pytesseract==0.3.10",
         "xlib==0.21",
         "av==10.0.0",
         "pygame==2.5.0",
@@ -25,15 +24,13 @@ setup(
         "openai==0.27.8",
         "tiktoken==0.4.0",
         "python-Levenshtein==0.21.1",
-        "tesserocr==2.6.1"
-        # "easyocr==1.7.0",
-        # "Pillow==9.5.0"
-
+        "tesserocr==2.6.1",
+        "pygame-textinput==1.0.1",
+        "pyperclip==1.8.2"
     ],
     entry_points={
         "console_scripts": [
             "pmr-bg = pmr:bg",
-            "pmr-query = pmr:query",
             "pmr-timeline = pmr:tl",
         ]
     },

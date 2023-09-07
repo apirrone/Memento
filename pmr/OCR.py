@@ -76,11 +76,11 @@ class Tesseract(OCR):
                 "text": ocrResult,
                 "conf": conf,
             }
-        
+
             _bboxes.append([entry["x"], entry["y"], entry["w"], entry["h"]])
 
             results.append(entry)
-        
+
         if not raw:
             results = GridSeg(_bboxes, 100, im_shape).final(results)
 
