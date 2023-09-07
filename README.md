@@ -2,6 +2,8 @@
 
 Memento is a Python app that records everything you do on your computer and lets you go back in time, search, and chat with a LLM (Large Language Model) to find back information about what you did.
 
+https://github.com/apirrone/Memento/assets/6552564/1183fe93-2e3a-4ee9-8225-4edf8f09e92c
+
 How it works:
 - The app takes a screenshot every 2 seconds
 - It compiles the screenshots into a h264 video segments for storage efficiency
@@ -13,7 +15,7 @@ How it works:
 
 This project is heavily inspired by [rewind.ai](https://rewind.ai/)
 
-TODO Demo video
+
 
 
 ## Installation
