@@ -2,7 +2,7 @@ import cv2
 from PIL import Image
 import time
 from tesserocr import PyTessBaseAPI, RIL
-from pmr.utils import draw_results
+from memento.utils import draw_results
 import numpy as np
 import pickle
 from grid_seg import GridSeg

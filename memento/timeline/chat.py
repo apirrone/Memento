@@ -9,8 +9,8 @@ import os
 import multiprocessing
 from multiprocessing import Queue
 import json
-import pmr.timeline.text_utils as text_utils
-import pmr.utils as utils
+import memento.timeline.text_utils as text_utils
+import memento.utils as utils
 import cv2
 import pygame_textinput
 
@@ -18,7 +18,7 @@ import pygame_textinput
 # Chat window on the right of the screen
 class Chat:
     def __init__(self, frame_getter):
-        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
+        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "memento")
 
         self.frame_getter = frame_getter
 
@@ -50,7 +50,7 @@ class Chat:
         self.chromadb = Chroma(
             persist_directory=self.cache_path,
             embedding_function=OpenAIEmbeddings(),
-            collection_name="pmr_db",
+            collection_name="memento_db",
         )
 
         self.memory = ConversationBufferMemory(

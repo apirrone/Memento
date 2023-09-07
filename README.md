@@ -1,14 +1,24 @@
-# Poor man's rewind.ai
+# Memento (working title)
 
-A reimplementation or rewind.ai using chromadb
+Memento is a Python app that records everything you do on your computer and lets you go back in time, search, and chat with a LLM (Large Language Model) to find back information about what you did.
+
+How it works:
+- The app takes a screenshot every 2 seconds
+- It compiles the screenshots into a h264 video segments for storage efficiency
+- It uses OCR to extract text from the images
+- It indexes the text in a sqlite3 database
+- It uses FTS5 to search the text
+- It uses a LLM (GPT through OpenAI's API) to chat with the timeline
+
+
+This project is heavily inspired by [rewind.ai](https://rewind.ai/)
 
 TODO Demo video
 
 
+## Installation
 
-
-
-## Install
+This project was tested on Ubuntu 22.04.
 
 ```console
 $ pip install -e .
@@ -38,13 +48,13 @@ export TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata/
 ### Background process
 Run in a terminal  
 ```console
-$ pmr-bg
+$ memento-bg
 ```
 
-### Timeline mode: 
+### Show the timeline:
 
 ```console
-$ pmr-timeline
+$ memento-timeline
 ```
 
 Then use `ctrl+f` to search.

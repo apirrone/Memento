@@ -1,7 +1,7 @@
 import cv2
 from PIL import Image
 from tesserocr import PyTessBaseAPI, RIL
-from pmr.grid_seg import GridSeg
+from memento.grid_seg import GridSeg
 
 
 class OCR:

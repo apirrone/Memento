@@ -1,6 +1,6 @@
 import cv2
-from pmr.OCR import OCR
-from pmr.utils import draw_results
+from memento.OCR import OCR
+from memento.utils import draw_results
 from texttron_wrapper import TexttronWrapper
 import time
 from grid_seg import GridSeg

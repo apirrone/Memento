@@ -1,12 +1,12 @@
 import pygame
-from pmr.timeline.frame_getter import FrameGetter
-from pmr.timeline.time_bar import TimeBar
-from pmr.timeline.search_bar import SearchBar
-from pmr.timeline.region_selector import RegionSelector
-from pmr.timeline.chat import Chat
-import pmr.utils as utils
+from memento.timeline.frame_getter import FrameGetter
+from memento.timeline.time_bar import TimeBar
+from memento.timeline.search_bar import SearchBar
+from memento.timeline.region_selector import RegionSelector
+from memento.timeline.chat import Chat
+import memento.utils as utils
 import pyperclip
-from pmr.timeline.ui import PopUpManager, Plot
+from memento.timeline.ui import PopUpManager, Plot
 import time
 
 

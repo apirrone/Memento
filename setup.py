@@ -7,14 +7,13 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="pmr",
+    name="memento",
     version="0.0.1",
     packages=find_packages(exclude=["tests"]),
     install_requires=[
         "mss==9.0.1",
         "numpy==1.25.1",
         "opencv-contrib-python==4.8.0.74",
-        # "chromadb==0.4.3",
         "xlib==0.21",
         "av==10.0.0",
         "pygame==2.5.0",
@@ -30,14 +29,14 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "pmr-bg = pmr:bg",
-            "pmr-timeline = pmr:tl",
+            "memento-bg = memento:bg",
+            "memento-timeline = memento:tl",
         ]
     },
     author="Antoine Pirrone",
     author_email="antoine.pirrone@gmail.com",
-    url="https://github.com/apirrone/poor_mans_rewind",
-    description="Poor man's rewind.ai",
+    url="https://github.com/apirrone/memento",
+    description="Memento is a Python app that records everything you do on your computer and lets you go back in time, search, and chat with a LLM (Large Language Model) to find back information about what you did.",
     long_description=long_description,
     long_description_content_type="text/markdown",
 )

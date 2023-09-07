@@ -4,8 +4,8 @@ import os
 
 class Db:
     def __init__(self):
-        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "pmr")
-        db_path = os.path.join(self.cache_path, "pmr.db")
+        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "memento")
+        db_path = os.path.join(self.cache_path, "memento.db")
         create_tables = False
         if not os.path.isfile(db_path):
             create_tables = True

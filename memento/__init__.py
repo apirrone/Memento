@@ -1,5 +1,5 @@
-from pmr.background import Background
-from pmr.timeline.timeline import Timeline
+from memento.background import Background
+from memento.timeline.timeline import Timeline
 
 
 def bg():

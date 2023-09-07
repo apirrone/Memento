@@ -1,5 +1,5 @@
-from pmr.OCR import Tesseract
-import pmr.utils as utils
+from memento.OCR import Tesseract
+import memento.utils as utils
 import cv2
 import pickle
 import numpy as np

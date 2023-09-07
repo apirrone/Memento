@@ -1,5 +1,5 @@
-from pmr.timeline.icon_getter import IconGetter
-import pmr.utils as utils
+from memento.timeline.icon_getter import IconGetter
+import memento.utils as utils
 import cv2
 import numpy as np
 import pygame

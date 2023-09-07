@@ -1,4 +1,4 @@
-import pmr.utils as utils
+import memento.utils as utils
 import numpy as np
 import cv2
 import mss

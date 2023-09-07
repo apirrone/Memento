@@ -1,6 +1,6 @@
 import pygame
 import pygame_textinput
-from pmr.db import Db
+from memento.db import Db
 
 
 class SearchBar:

@@ -200,6 +200,6 @@ def imgdiff(im1, im2):
 
 
 def recording():
-    res = os.popen("ps aux | grep pmr-bg").read()
-    # > 3 because ps and grep themselves are included in the output (2) and if pmr-bg is running (and not waiting for starting prompt), there are at least two processes
+    res = os.popen("ps aux | grep memento-bg").read()
+    # > 3 because ps and grep themselves are included in the output (2) and if memento-bg is running (and not waiting for starting prompt), there are at least two processes
     return len(res.splitlines()) > 3

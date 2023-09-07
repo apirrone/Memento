@@ -2,8 +2,8 @@ from texttron_wrapper import TexttronWrapper
 import cv2
 from PIL import Image, ImageShow
 import time
-from pmr.OCR import OCR
-from pmr.utils import draw_results
+from memento.OCR import OCR
+from memento.utils import draw_results
 from tesserocr import PyTessBaseAPI, PSM, OEM, RIL
 
 dumm_ocr = OCR()
