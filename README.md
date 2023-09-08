@@ -16,8 +16,6 @@ How it works:
 This project is heavily inspired by [rewind.ai](https://rewind.ai/)
 
 
-
-
 ## Installation
 
 This project was tested on Ubuntu 22.04.
@@ -64,3 +62,7 @@ Then use `ctrl+f` to search.
 If you want to chat with the timeline through a llm, you need an openai api key in your env as `OPENAI_API_KEY`.
 Then use `ctrl+t` to open the chatbox.
   
+### Contributing: 
+Feel free to contribute ! 
+
+Fork the repo, and submit a PR.
