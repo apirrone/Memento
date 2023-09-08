@@ -4,7 +4,7 @@ Memento is a Python app that records everything you do on your computer and lets
 
 How it works:
 - The app takes a screenshot every 2 seconds
-- It compiles the screenshots into a h264 video segments for storage efficiency
+- It compiles the screenshots into h264 video segments for storage efficiency
 - It uses OCR to extract text from the images
 - It indexes the text in a sqlite3 database
 - It uses FTS5 to search the text

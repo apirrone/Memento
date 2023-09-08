@@ -57,7 +57,7 @@ class RegionSelector:
         if region_area < 1:
             return None
         crop = frame[region[1] : region[3], region[0] : region[2]]
-        results = self.ocr.process_image(crop, raw=True)
+        results = self.ocr.process_image(crop)
         res = []
         for r in results:
             entry = {
