@@ -1,6 +1,7 @@
 import pygame
 import pygame_textinput
 from memento.db import Db
+import numpy as np
 
 
 class SearchBar:
@@ -8,11 +9,11 @@ class SearchBar:
         self.frame_getter = frame_getter
         self.db = Db()
 
-        ws = self.frame_getter.window_size
-        self.x = ws[0] // 10
-        self.y = ws[1] // 10
-        self.w = ws[0] - ws[0] // 5
-        self.h = ws[1] // 20
+        self.ws = self.frame_getter.window_size
+        self.x = self.ws[0] // 10
+        self.y = self.ws[1] // 10
+        self.w = self.ws[0] - self.ws[0] // 5
+        self.h = self.ws[1] // 20
         self.active = False
         self.found = False
         self.input_changed = False
@@ -35,8 +36,15 @@ class SearchBar:
             (self.x, self.y, self.w, self.h),
             border_radius=self.h // 4,
         )
+        # draw a black border
+        pygame.draw.rect(
+            screen,
+            (0, 0, 0),
+            (self.x, self.y, self.w, self.h),
+            width=5,
+            border_radius=self.h // 4,
+        )
 
-    def draw_text(self, screen):
         font = pygame.font.SysFont("Arial", self.h // 2)
         text = font.render(self.textinput.value, True, (0, 0, 0))
         screen.blit(text, (self.x + 10, self.y + 10))
@@ -62,7 +70,6 @@ class SearchBar:
         if not self.active:
             return
         self.draw_bar(screen)
-        self.draw_text(screen)
 
     def start_query(self):
         print("start query")
@@ -71,7 +78,7 @@ class SearchBar:
 
         results = self.db.search(query_input)
 
-        self.frame_getter.set_annotation(results)
+        self.frame_getter.set_annotations(results)
         if len(results) > 0:
             self.found = True
             self.frame_getter.nb_results = len(results)

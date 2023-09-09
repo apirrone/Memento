@@ -130,9 +130,16 @@ class FrameGetter:
         else:
             return 0
 
-    def set_annotation(self, annotations):
+    def set_annotations(self, annotations):
         self.annotations = annotations
         self.current_displayed_frame = None
+
+    def get_annotated_frames(self):
+        frames = []
+        for frame_i in list(self.annotations.keys())[:10]:
+            frames.append(self.get_frame(int(frame_i)))
+
+        return frames
 
     def get_annotations_text(self):
         text = ""
