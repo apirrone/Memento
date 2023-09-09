@@ -64,7 +64,7 @@ class Recorder:
         self.stream = self.output.add_stream("h264", str(FPS))
         self.stream.height = RESOLUTION[1]
         self.stream.width = RESOLUTION[0]
-        self.stream.bit_rate = 8500e3
+        self.stream.bit_rate = 8500e1
 
     def start(self):
         self._start = time.time()
