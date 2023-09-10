@@ -66,6 +66,9 @@ class SearchBar:
                 ),
             )
 
+    def draw_app_filter(self, screen):
+        pass
+
     def draw(self, screen):
         if not self.active:
             return

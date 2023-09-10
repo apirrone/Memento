@@ -1,29 +1,9 @@
-from memento.timeline.icon_getter import IconGetter
 import memento.utils as utils
 import cv2
 import numpy as np
 import pygame
 import datetime
-
-COLOR_PALETTE = [
-    [244, 67, 54],
-    [233, 30, 99],
-    [156, 39, 176],
-    [103, 58, 183],
-    [63, 81, 181],
-    [33, 150, 243],
-    [3, 169, 244],
-    [0, 188, 212],
-    [0, 150, 136],
-    [76, 175, 80],
-    [139, 195, 74],
-    [205, 220, 57],
-    [255, 235, 59],
-    [255, 193, 7],
-    [255, 152, 0],
-    [255, 87, 34],
-]
-# TODO add more colors if needed ?
+from memento.timeline.apps import Apps
 
 
 class TimeBar:
@@ -52,12 +32,8 @@ class TimeBar:
         self.preview_frame_i = 0
         self.preview_surf = None
 
-        self.ig = IconGetter(size=self.h)
-
-        self.apps = {}
+        self.apps = Apps(self.frame_getter)
         self.today = datetime.datetime.now().strftime("%Y-%m-%d")
-
-        self.build()
 
     def zoom(self, dir):
         self.tws = min(
@@ -86,19 +62,6 @@ class TimeBar:
             return "2 days ago" + " " + hr
         else:
             return date
-
-    def build(self):
-        for i in range(self.nb_frames):
-            app = self.metadata_cache.get_frame_metadata(i)["window_title"]
-            if app not in self.apps:
-                self.apps[app] = {}
-                if len(self.apps) <= len(COLOR_PALETTE):
-                    self.apps[app]["color"] = tuple(COLOR_PALETTE[len(self.apps)])
-                else:
-                    self.apps[app]["color"] = tuple(np.random.randint(0, 255, size=3))
-                icon_small, icon_big = self.ig.lookup_icon(app)
-                self.apps[app]["icon_small"] = icon_small
-                self.apps[app]["icon_big"] = icon_big
 
     # TODO adjust time bar so that the cursor is visible when jumping that way
     def set_current_frame_i(self, frame_i):
@@ -165,7 +128,7 @@ class TimeBar:
 
             pygame.draw.rect(
                 screen,
-                self.apps[app]["color"],
+                self.apps.get_color(app),
                 (seg_x, self.y, seg_w, self.h),
                 border_radius=self.h // 4,
             )
@@ -178,23 +141,25 @@ class TimeBar:
             seg_x = self.x + (start / self.tws) * self.w
             seg_w = (end - start) / self.tws * self.w
 
-            if self.apps[app]["icon_small"] is not None:
+            if self.apps.get_icon(app) is not None:
                 if start <= self.current_frame_i <= end or utils.in_rect(
                     (seg_x, self.y, seg_w, self.h), mouse_pos
                 ):
                     screen.blit(
-                        self.apps[app]["icon_big"],
+                        self.apps.get_icon(app, small=False),
                         (
-                            self.x + (middle / self.tws) * self.w - self.ig.size,
-                            self.y - self.ig.size // 2,
+                            self.x + (middle / self.tws) * self.w - self.apps.ig.size,
+                            self.y - self.apps.ig.size // 2,
                         ),
                     )
 
                 else:
                     screen.blit(
-                        self.apps[app]["icon_small"],
+                        self.apps.get_icon(app, small=True),
                         (
-                            self.x + (middle / self.tws) * self.w - self.ig.size // 2,
+                            self.x
+                            + (middle / self.tws) * self.w
+                            - self.apps.ig.size // 2,
                             self.y,
                         ),
                     )
