@@ -32,8 +32,12 @@ class FrameGetter:
         self.debug_mode = not self.debug_mode
         self.clear_annotations()
 
-    def get_frame(self, frame_i):
+    def get_frame(self, frame_i, resize=None):
         im = self.current_displayed_frame
+
+        # Resize frame if needed, still use cache
+        if im is not None and resize != im.shape:
+            self.current_displayed_frame = None
 
         # Avoid resizing and converting the same frame each time
         if (
@@ -43,7 +47,10 @@ class FrameGetter:
             im = self.readers_cache.get_frame(min(self.nb_frames - 1, frame_i))
             self.process_debug(frame_i)
             im = self.annotate_frame(frame_i, im)
-            im = cv2.resize(im, self.window_size)
+            if resize:
+                im = cv2.resize(im, resize)
+            else:
+                im = cv2.resize(im, self.window_size)
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB).swapaxes(0, 1)
             self.current_displayed_frame = im
             self.current_displayed_frame_i = frame_i
@@ -133,6 +140,9 @@ class FrameGetter:
     def set_annotations(self, annotations):
         self.annotations = annotations
         self.current_displayed_frame = None
+
+    def get_annotations(self):
+        return self.annotations
 
     def get_annotated_frames(self):
         frames = []

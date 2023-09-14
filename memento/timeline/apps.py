@@ -37,7 +37,7 @@ class Apps:
             app = self.metadata_cache.get_frame_metadata(i)["window_title"]
             if app not in self.apps:
                 self.apps[app] = {}
-                if len(self.apps) <= len(COLOR_PALETTE):
+                if len(self.apps) < len(COLOR_PALETTE):
                     self.apps[app]["color"] = tuple(COLOR_PALETTE[len(self.apps)])
                 else:
                     self.apps[app]["color"] = tuple(np.random.randint(0, 255, size=3))

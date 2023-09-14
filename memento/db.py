@@ -70,7 +70,7 @@ class Db:
 
         results = {}
         for row in cursor:
-            print(row)
+            # print(row)
             rank = row[0]
             frame_id = str(row[1])
             if frame_id not in results:
