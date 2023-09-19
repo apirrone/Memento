@@ -17,6 +17,7 @@ VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 RESOLUTION = (1920, 1080)
 MAX_TWS = 10000 * FPS * SECONDS_PER_REC
 FRAME_CACHE_SIZE = int((MAX_TWS / FPS / SECONDS_PER_REC))
+CACHE_PATH = os.path.join(os.environ["HOME"], ".cache", "memento")
 
 
 def get_active_window():

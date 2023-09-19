@@ -1,5 +1,6 @@
 import numpy as np
 from memento.timeline.icon_getter import IconGetter
+import time
 
 COLOR_PALETTE = [
     [244, 67, 54],
@@ -33,7 +34,11 @@ class Apps:
         self.nb_frames = self.frame_getter.nb_frames
         self.ig = IconGetter(size=self.h)
 
-        for i in range(self.nb_frames):
+        # Hacky solution for faster timeline startup
+        stride = 100
+        if len(self.ig.icon_cache) == 0 or self.nb_frames < 1000:
+            stride = 1
+        for i in range(0, self.nb_frames, stride):
             app = self.metadata_cache.get_frame_metadata(i)["window_title"]
             if app not in self.apps:
                 self.apps[app] = {}

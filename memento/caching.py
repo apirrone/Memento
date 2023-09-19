@@ -1,5 +1,5 @@
 import av
-from memento.utils import FPS, SECONDS_PER_REC, FRAME_CACHE_SIZE
+from memento.utils import FPS, SECONDS_PER_REC, FRAME_CACHE_SIZE, CACHE_PATH
 import time
 import os
 import json
@@ -22,10 +22,9 @@ class Reader:
 
 
 class ReadersCache:
-    def __init__(self, cache_path):
+    def __init__(self):
         self.readers = {}
         self.readers_ids = []  # in order to know the oldest reader
-        self.cache_path = cache_path
         self.cache_size = FRAME_CACHE_SIZE
 
     def select_video_id(self, frame_id):
@@ -37,7 +36,7 @@ class ReadersCache:
         if video_id not in self.readers:  # Caching reader
             start = time.time()
             self.readers[video_id] = Reader(
-                os.path.join(self.cache_path, str(video_id) + ".mp4"), offset=offset
+                os.path.join(CACHE_PATH, str(video_id) + ".mp4"), offset=offset
             )
             self.readers_ids.append(video_id)
             # print(
@@ -78,8 +77,7 @@ class Metadata:
 
 
 class MetadataCache:
-    def __init__(self, cache_path):
-        self.cache_path = cache_path
+    def __init__(self):
         self.cache = {}
         self.cache_size = FRAME_CACHE_SIZE
         self.cache_ids = []
@@ -92,7 +90,7 @@ class MetadataCache:
         if metadata_id not in self.cache:
             start = time.time()
             self.cache[metadata_id] = Metadata(
-                os.path.join(self.cache_path, str(metadata_id) + ".json")
+                os.path.join(CACHE_PATH, str(metadata_id) + ".json")
             )
             # print(
             #     "Caching metadata",
@@ -112,7 +110,7 @@ class MetadataCache:
     def get_frame_metadata(self, frame_id):
         metadata = self.get_metadata(frame_id)
         return metadata.get_frame(frame_id)
-    
+
     def write(self, frame_id, data):
         metadata = self.get_metadata(frame_id)
         metadata.write(frame_id, data)

@@ -10,14 +10,13 @@ class FrameGetter:
     def __init__(self, window_size):
         self.window_size = window_size
 
-        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "memento")
-        self.readers_cache = ReadersCache(self.cache_path)
-        self.metadata_cache = MetadataCache(self.cache_path)
+        self.readers_cache = ReadersCache()
+        self.metadata_cache = MetadataCache()
         self.annotations = {}
         self.current_ret_annotated = 0
         self.nb_frames = int(
             (
-                len(glob(os.path.join(self.cache_path, "*.mp4")))
+                len(glob(os.path.join(utils.CACHE_PATH, "*.mp4")))
                 * utils.FPS
                 * utils.SECONDS_PER_REC
             )

@@ -31,7 +31,6 @@ class TimeBar:
         self.current_frame_i = self.tw_end - 1
         self.preview_frame_i = 0
         self.preview_surf = None
-
         self.apps = Apps(self.frame_getter)
         self.today = datetime.datetime.now().strftime("%Y-%m-%d")
 
