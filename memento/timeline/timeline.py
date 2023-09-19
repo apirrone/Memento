@@ -46,9 +46,21 @@ class Timeline:
         self.chat = Chat(self.frame_getter)
 
     def draw_current_frame(self):
-        frame = self.frame_getter.get_frame(self.time_bar.current_frame_i)
+        x = 0
+        y = 0
+        resize = None
+        if self.search_bar.active:
+            w = self.window_size[0] - self.search_bar.w
+            ratio = self.window_size[1] / self.window_size[0]
+            h = int(w * ratio)
+            resize = (w, h)
+            x = self.search_bar.w
+            y = (self.window_size[1] - h) // 2
+        frame = self.frame_getter.get_frame(
+            self.time_bar.current_frame_i, resize=resize
+        )
         surf = pygame.surfarray.make_surface(frame).convert()
-        self.screen.blit(surf, (0, 0))
+        self.screen.blit(surf, (x, y))
 
     # TODO This is a mess
     def handle_inputs(self):
@@ -56,7 +68,7 @@ class Timeline:
         ret_frame = None
         mouse_wheel = 0
         events = pygame.event.get()
-        found = self.search_bar.events(events)
+        found, search_bar_frame_i = self.search_bar.events(events)
         ret_frame = self.chat.events(events)
         for event in events:
             if event.type == pygame.MOUSEWHEEL:
@@ -64,10 +76,14 @@ class Timeline:
                 if not self.ctrl_pressed:
                     if self.chat.active and self.chat.hover(pygame.mouse.get_pos()):
                         self.chat.scroll(event.y)
+                    elif self.search_bar.active and self.search_bar.hover(
+                        pygame.mouse.get_pos()
+                    ):
+                        self.search_bar.scroll(event.y)
                     else:
                         self.time_bar.move_cursor((mouse_wheel))
                     self.region_selector.reset()
-                    self.frame_getter.clear_annotations()
+                    # self.frame_getter.clear_annotations()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if self.time_bar.hover(event.pos):
@@ -75,6 +91,8 @@ class Timeline:
                             self.time_bar.get_frame_i(event.pos)
                         )
                         self.region_selector.reset()
+                    elif self.search_bar.active and self.search_bar.hover(event.pos):
+                        pass
                     elif not self.chat.hover(pygame.mouse.get_pos()):
                         self.search_bar.deactivate()
                         self.region_selector.start(event.pos)
@@ -150,7 +168,9 @@ class Timeline:
                     2,
                 )
 
-        if found:
+        if search_bar_frame_i is not None:
+            self.time_bar.set_current_frame_i(search_bar_frame_i)
+        elif found:
             self.time_bar.set_current_frame_i(
                 self.frame_getter.get_next_annotated_frame_i()
             )
@@ -195,7 +215,7 @@ class Timeline:
 
     def run(self):
         while True:
-            self.screen.fill((255, 255, 255))
+            self.screen.fill((0, 0, 0))
             self.draw_current_frame()
             self.time_bar.draw(self.screen, pygame.mouse.get_pos())
             self.search_bar.draw(self.screen)

@@ -18,9 +18,13 @@ import pygame_textinput
 # Chat window on the right of the screen
 class Chat:
     def __init__(self, frame_getter):
-        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "memento")
-
         self.frame_getter = frame_getter
+        self.key_ok = True
+        self.msg = ""
+        if "OPENAI_API_KEY" not in os.environ:
+            self.key_ok = False
+            self.msg = "Chat requires an OpenAI API key to work. Set the OPENAI_API_KEY env variable to your API key."
+            print(self.msg)
 
         ws = self.frame_getter.window_size
         self.w = ws[0] // 3
@@ -48,7 +52,7 @@ class Chat:
         self.frame_peek_hovered_id = None
 
         self.chromadb = Chroma(
-            persist_directory=self.cache_path,
+            persist_directory=utils.CACHE_PATH,
             embedding_function=OpenAIEmbeddings(),
             collection_name="memento_db",
         )
@@ -76,7 +80,7 @@ class Chat:
         )
 
         self.qa = ConversationalRetrievalChain.from_llm(
-            ChatOpenAI(model_name="gpt-4", temperature=0.8),
+            ChatOpenAI(model_name="gpt-3.5-turbo-0301", temperature=0.8),
             self.retriever,
             memory=self.memory,
             verbose=True,
@@ -129,6 +133,8 @@ class Chat:
 
     def events(self, events):
         if not self.active:
+            return None
+        if not self.key_ok:
             return None
 
         self.textinput.update(events)
@@ -344,5 +350,7 @@ class Chat:
         screen.blit(surf, (self.x, self.y))
 
         self.draw_chat_history(screen)
+        if not self.key_ok:
+            self.draw_bubble(screen, self.msg, 0, question=False)
         self.handle_frames_peeks(screen)
         self.draw_input_box(screen)
