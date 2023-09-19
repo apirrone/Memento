@@ -82,8 +82,8 @@ class SearchBar:
                 ),
             )
 
-    # TODO too long to compute as is. 
-    # Should be better with segments
+    # TODO too long to compute as is.
+    # Should be better with segments
     def remove_similar_annotations(self, annotations):
         filtered_annotations = {}
         annotations_frames = []
@@ -131,6 +131,12 @@ class SearchBar:
                     self.w,
                     self.list_entry_h,
                 )
+                if not utils.rect_in_rect(
+                    rect, (0, 0, self.ws[0], self.ws[1] + rect[3])
+                ):
+                    index += 1
+                    continue
+
                 # y = self.y  + self.y_offset + index * self.list_entry_h,
                 pygame.draw.rect(
                     screen,
@@ -173,7 +179,7 @@ class SearchBar:
 
     def hover(self, mouse_pos):
         return utils.in_rect((self.x, self.y, self.w, self.ws[1]), mouse_pos)
-    
+
     def scroll(self, dir):
         if len(self.frame_getter.annotations) > 0:
             self.y_offset = min(self.h, self.y_offset + dir * 10)

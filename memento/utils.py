@@ -98,6 +98,12 @@ def in_rect(rect, pos):
     return x <= pos[0] <= x + w and y <= pos[1] <= y + h
 
 
+def rect_in_rect(rect1, rect2):
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    return x1 >= x2 and y1 >= y2 and x1 + w1 <= x2 + w2 and y1 + h1 <= y2 + h2
+
+
 def draw_results(res, frame):
     for entry in res:
         x = int(entry["x"])
