@@ -15,6 +15,8 @@ How it works:
 
 This project is heavily inspired by [rewind.ai](https://rewind.ai/)
 
+- The `main` branch is the latest release
+- The `dev` branch contains the latest "stable" improvements that will be merged into main periodically
 
 ## Installation
 
