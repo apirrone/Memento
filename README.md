@@ -1,4 +1,4 @@
-# Memento (working title)
+# Memento
 
 Memento is a Python app that records everything you do on your computer and lets you go back in time, search, and chat with a LLM (Large Language Model) to find back information about what you did.
 
