@@ -4,6 +4,8 @@ Memento is a Python app that records everything you do on your computer and lets
 
 https://github.com/apirrone/Memento/assets/6552564/d256a3a9-fa44-4b73-8b8e-b02a5473540b
 
+This project is heavily inspired by [rewind.ai](https://rewind.ai/)
+
 How it works:
 - The app takes a screenshot every 2 seconds
 - It compiles the screenshots into h264 video segments for storage efficiency
@@ -12,11 +14,15 @@ How it works:
 - It uses FTS5 to search the text
 - It uses a LLM (GPT through OpenAI's API) to chat with the timeline
 
-
-This project is heavily inspired by [rewind.ai](https://rewind.ai/)
-
+Branches :
 - The `main` branch is the latest release
 - The `dev` branch contains the latest "stable" improvements that will be merged into main periodically
+
+## Disk space and performance considerations
+- Right now, Memento produces about **120MB** of data per hour
+- We are working on ways to reduce this number
+- **TODO** profile cpu usage of Memento
+
 
 ## Installation
 
