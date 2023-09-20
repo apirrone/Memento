@@ -6,7 +6,7 @@ https://github.com/apirrone/Memento/assets/6552564/d256a3a9-fa44-4b73-8b8e-b02a5
 
 This project is heavily inspired by [rewind.ai](https://rewind.ai/)
 
-How it works:
+## How it works:
 - The app takes a screenshot every 2 seconds
 - It compiles the screenshots into h264 video segments for storage efficiency
 - It uses OCR to extract text from the images
@@ -14,9 +14,10 @@ How it works:
 - It uses FTS5 to search the text
 - It uses a LLM (GPT through OpenAI's API) to chat with the timeline
 
-Branches :
+## Branches :
 - The `main` branch is the latest release
 - The `dev` branch contains the latest "stable" improvements that will be merged into main periodically
+- Any other branch is a feature currently being developed
 
 ## Disk space and performance considerations
 - Right now, Memento produces about **120MB** of data per hour
@@ -70,7 +71,7 @@ Then use `ctrl+f` to search.
 If you want to chat with the timeline through a llm, you need an openai api key in your env as `OPENAI_API_KEY`.
 Then use `ctrl+t` to open the chatbox.
   
-### Contributing: 
+## Contributing: 
 Feel free to contribute ! 
 
 Fork the repo, and submit a PR.
