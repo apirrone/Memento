@@ -74,4 +74,4 @@ Then use `ctrl+t` to open the chatbox.
 ## Contributing: 
 Feel free to contribute ! 
 
-Fork the repo, and submit a PR.
+Fork the repo, and submit a PR to the `dev` branch.
