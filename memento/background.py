@@ -19,9 +19,7 @@ from langchain.vectorstores import Chroma
 
 class Background:
     def __init__(self):
-        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "memento")
-
-        if os.path.exists(os.path.join(self.cache_path, "0.json")):
+        if os.path.exists(os.path.join(utils.CACHE_PATH, "0.json")):
             print("EXISTING MEMENTO CACHE FOUND")
             print("Continue this recording or erase and start over ? ")
             print("1. Continue")
@@ -33,30 +31,30 @@ class Background:
 
             if choice == "1":
                 self.nb_rec = len(
-                    [f for f in os.listdir(self.cache_path) if f.endswith(".mp4")]
+                    [f for f in os.listdir(utils.CACHE_PATH) if f.endswith(".mp4")]
                 )
                 self.frame_i = int(self.nb_rec * utils.FPS * utils.SECONDS_PER_REC)
             else:
-                os.system("rm -rf " + self.cache_path)
+                os.system("rm -rf " + utils.CACHE_PATH)
                 self.nb_rec = 0
                 self.frame_i = 0
         else:
             self.nb_rec = 0
             self.frame_i = 0
 
-        self.metadata_cache = MetadataCache(self.cache_path)
+        self.metadata_cache = MetadataCache()
 
-        os.makedirs(self.cache_path, exist_ok=True)
+        os.makedirs(utils.CACHE_PATH, exist_ok=True)
         self.db = Db()
         self.chromadb = Chroma(
-            persist_directory=self.cache_path,
+            persist_directory=utils.CACHE_PATH,
             embedding_function=OpenAIEmbeddings(),
             collection_name="memento_db",
         )
 
         self.sct = mss.mss()
         self.rec = utils.Recorder(
-            os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
+            os.path.join(utils.CACHE_PATH, str(self.nb_rec) + ".mp4")
         )
         self.rec.start()
 
@@ -221,5 +219,5 @@ class Background:
                 self.rec.stop()
                 self.nb_rec += 1
                 self.rec = utils.Recorder(
-                    os.path.join(self.cache_path, str(self.nb_rec) + ".mp4")
+                    os.path.join(utils.CACHE_PATH, str(self.nb_rec) + ".mp4")
                 )

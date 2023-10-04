@@ -1,11 +1,11 @@
 import sqlite3
 import os
+from memento.utils import CACHE_PATH
 
 
 class Db:
     def __init__(self):
-        self.cache_path = os.path.join(os.environ["HOME"], ".cache", "memento")
-        db_path = os.path.join(self.cache_path, "memento.db")
+        db_path = os.path.join(CACHE_PATH, "memento.db")
         create_tables = False
         if not os.path.isfile(db_path):
             create_tables = True
@@ -70,7 +70,7 @@ class Db:
 
         results = {}
         for row in cursor:
-            print(row)
+            # print(row)
             rank = row[0]
             frame_id = str(row[1])
             if frame_id not in results:

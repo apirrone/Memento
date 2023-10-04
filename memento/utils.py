@@ -17,6 +17,7 @@ VIDEO_TIME_BASE = fractions.Fraction(1, VIDEO_CLOCK_RATE)
 RESOLUTION = (1920, 1080)
 MAX_TWS = 10000 * FPS * SECONDS_PER_REC
 FRAME_CACHE_SIZE = int((MAX_TWS / FPS / SECONDS_PER_REC))
+CACHE_PATH = os.path.join(os.environ["HOME"], ".cache", "memento")
 
 
 def get_active_window():
@@ -64,7 +65,7 @@ class Recorder:
         self.stream = self.output.add_stream("h264", str(FPS))
         self.stream.height = RESOLUTION[1]
         self.stream.width = RESOLUTION[0]
-        self.stream.bit_rate = 8500e3
+        self.stream.bit_rate = 8500e1
 
     def start(self):
         self._start = time.time()
@@ -96,6 +97,12 @@ class Recorder:
 def in_rect(rect, pos):
     x, y, w, h = rect
     return x <= pos[0] <= x + w and y <= pos[1] <= y + h
+
+
+def rect_in_rect(rect1, rect2):
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    return x1 >= x2 and y1 >= y2 and x1 + w1 <= x2 + w2 and y1 + h1 <= y2 + h2
 
 
 def draw_results(res, frame):
