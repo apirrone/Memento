@@ -1,10 +1,12 @@
-# Memento (working title)
+# Memento
 
 Memento is a Python app that records everything you do on your computer and lets you go back in time, search, and chat with a LLM (Large Language Model) to find back information about what you did.
 
 https://github.com/apirrone/Memento/assets/6552564/d256a3a9-fa44-4b73-8b8e-b02a5473540b
 
-How it works:
+This project is heavily inspired by [rewind.ai](https://rewind.ai/)
+
+## How it works:
 - The app takes a screenshot every 2 seconds
 - It compiles the screenshots into h264 video segments for storage efficiency
 - It uses OCR to extract text from the images
@@ -12,8 +14,15 @@ How it works:
 - It uses FTS5 to search the text
 - It uses a LLM (GPT through OpenAI's API) to chat with the timeline
 
+## Branches :
+- The `main` branch is the latest release
+- The `dev` branch contains the latest "stable" improvements that will be merged into main periodically
+- Any other branch is a feature currently being developed
 
-This project is heavily inspired by [rewind.ai](https://rewind.ai/)
+## Disk space and performance considerations
+- Right now, Memento produces about **120MB** of data per hour
+- We are working on ways to reduce this number
+- **TODO** profile cpu usage of Memento
 
 
 ## Installation
@@ -62,7 +71,7 @@ Then use `ctrl+f` to search.
 If you want to chat with the timeline through a llm, you need an openai api key in your env as `OPENAI_API_KEY`.
 Then use `ctrl+t` to open the chatbox.
   
-### Contributing: 
+## Contributing: 
 Feel free to contribute ! 
 
-Fork the repo, and submit a PR.
+Fork the repo, and submit a PR to the `dev` branch.

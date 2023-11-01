@@ -19,14 +19,14 @@ setup(
         "pygame==2.5.0",
         "TextTron==0.45",
         "thefuzz==0.19.0",
-        "langchain==0.0.253",
+        "langchain==0.0.312",
         "openai==0.27.8",
         "tiktoken==0.4.0",
         "python-Levenshtein==0.21.1",
         "tesserocr==2.6.1",
         "pygame-textinput==1.0.1",
         "pyperclip==1.8.2",
-        "Pillow==10.0.0",
+        "Pillow==10.0.1",
         "chromadb==0.4.9"
     ],
     entry_points={
