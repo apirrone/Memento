@@ -65,7 +65,7 @@ class Background:
 
         self.images_queue = Queue()
         self.results_queue = Queue()
-        self.nb_workers = 1  # Need to have only one worker for segments for now.
+        self.nb_workers = 1  # Need to have only one worker for segments for now. Seems to be ok performance wise
         self.workers = []
         self.pids = []
         for i in range(self.nb_workers):
@@ -216,7 +216,7 @@ class Background:
                                     content_segment
                                 ) in app_segment.content_segments.segments:
                                     all_texts.append(content_segment.get_merged_text())
-                                    
+
                             _id = str(list(done_segments[0].frames.keys())[0])
                             _time = done_segments[0].time
                             _window_title = done_segments[0].app_name
@@ -226,7 +226,7 @@ class Background:
                                     "time": _time,
                                     "window_title": _window_title,
                                 }
-                                for i in range(len(all_texts))
+                                for _ in range(len(all_texts))
                             ]
                             self.chromadb.add_texts(
                                 texts=all_texts,

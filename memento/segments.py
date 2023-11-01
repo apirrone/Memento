@@ -32,7 +32,7 @@ class ContentSegment:
     def __init__(self):
         self.frames = {}
         self.last_text = None
-        self.merged_text = "abc"
+        self.merged_text = ""
 
     def add(self, frame_i, text):
         self.frames[frame_i] = text
@@ -161,3 +161,7 @@ if __name__ == "__main__":
             all_text += text + " "
 
         app_segments.add(app_name, i, all_text, "aze")
+
+    # for app_segment in app_segments.segments:
+    #     app_segment.compute()
+    #     app_segment.show()

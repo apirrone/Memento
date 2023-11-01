@@ -67,7 +67,6 @@ class Chat:
         If you don't know the answer, just say that you don't know, don't try to make up an answer.
         You will format your answer in json, with the keys "answer" and "frames_ids". Always include these keys, even if you did not find anything. Just say it and return an empty list for "frames_ids".
         The value of "answer" will be the answer to the question, and the value of "frames_ids" will be a list of frame_ids from which you got the information from using the metadata.
-        Use three sentences maximum and keep the answer as concise as possible.
 
         Context: {context}
         Question: {question}
