@@ -12,8 +12,15 @@ import time
 
 class Timeline:
     def __init__(self):
-        self.window_size = utils.RESOLUTION
+        # Initialize the display module
+        pygame.display.init()
 
+        # Get display information
+        infoObject = pygame.display.Info()
+
+        # Set window_size to the current screen resolution
+        self.window_size = (infoObject.current_w, infoObject.current_h)
+        
         # Faster than pygame.init()
         pygame.display.init()
         pygame.font.init()
