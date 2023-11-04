@@ -19,7 +19,7 @@ setup(
         "pygame==2.5.0",
         "TextTron==0.45",
         "thefuzz==0.19.0",
-        "langchain==0.0.312",
+        "langchain==0.0.325",
         "openai==0.27.8",
         "tiktoken==0.4.0",
         "python-Levenshtein==0.21.1",
