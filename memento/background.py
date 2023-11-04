@@ -15,6 +15,7 @@ from memento.caching import MetadataCache
 from langchain.embeddings.openai import OpenAIEmbeddings
 from memento.db import Db
 from langchain.vectorstores import Chroma
+from memento.segments import AppSegments
 
 
 class Background:
@@ -66,9 +67,11 @@ class Background:
 
         self.running = True
 
+        self.app_segments = AppSegments()
+
         self.images_queue = Queue()
         self.results_queue = Queue()
-        self.nb_workers = 2
+        self.nb_workers = 1  # Need to have only one worker for segments for now. Seems to be ok performance wise
         self.workers = []
         self.pids = []
         for i in range(self.nb_workers):
@@ -187,13 +190,20 @@ class Background:
                     self.metadata_cache.write(result["frame_i"], frame_metadata)
                     if len(text) == 0:
                         continue
-                    md = [
-                        {
-                            "id": str(result["frame_i"]),
-                            "time": result["time"],
-                            "window_title": result["window_title"],
-                        }
-                    ]
+                    # md = [
+                    #     {
+                    #         "id": str(result["frame_i"]),
+                    #         "time": result["time"],
+                    #         "window_title": result["window_title"],
+                    #     }
+                    # ]
+
+                    self.app_segments.add(
+                        result["window_title"],
+                        result["frame_i"],
+                        all_text,
+                        result["time"],
+                    )
                     add_db_start = time.time()
                     try:
                         self.db.add_texts(
@@ -203,16 +213,38 @@ class Background:
                             window_title=frame_metadata["window_title"],
                             time=frame_metadata["time"],
                         )
-                        if self.chromadb is not None:
-                            self.chromadb.add_texts(
-                                texts=[all_text],
-                                metadatas=md,
-                            )
+                        done_segments = self.app_segments.get_done_segments()
+                        if len(done_segments) > 0:
+                            print("DONE SEGMENTS", len(done_segments))
+                            all_texts = []
+                            for app_segment in done_segments:
+                                for (
+                                    content_segment
+                                ) in app_segment.content_segments.segments:
+                                    all_texts.append(content_segment.get_merged_text())
+
+                            _id = str(list(done_segments[0].frames.keys())[0])
+                            _time = done_segments[0].time
+                            _window_title = done_segments[0].app_name
+                            md = [
+                                {
+                                    "id": _id,
+                                    "time": _time,
+                                    "window_title": _window_title,
+                                }
+                                for _ in range(len(all_texts))
+                            ]
+                            if self.chromadb is not None:
+                                self.chromadb.add_texts(
+                                    texts=all_texts,
+                                    metadatas=md,
+                                )
+                            print("ADDED SEQUENCE ", all_texts)
                         print("ADD TO DB TIME:", time.time() - add_db_start)
                     except Exception as e:
                         print("================aaaaaaa", e)
                         print("text", text)
-                        print("md", md)
+                        # print("md", md)
                         print("===============")
 
                 except Exception:
