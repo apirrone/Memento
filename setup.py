@@ -8,7 +8,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="memento",
-    version="0.0.1",
+    version="0.0.1.2",
     packages=find_packages(exclude=["tests"]),
     install_requires=[
         "mss==9.0.1",
