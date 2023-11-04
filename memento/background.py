@@ -46,11 +46,17 @@ class Background:
 
         os.makedirs(utils.CACHE_PATH, exist_ok=True)
         self.db = Db()
-        self.chromadb = Chroma(
-            persist_directory=utils.CACHE_PATH,
-            embedding_function=OpenAIEmbeddings(),
-            collection_name="memento_db",
-        )
+        if "OPENAI_API_KEY" not in os.environ:
+            self.chromadb = None
+            print(
+                "No OPENAI_API_KEY environment variable found, LLM related features will not be available"
+            )
+        else:
+            self.chromadb = Chroma(
+                persist_directory=utils.CACHE_PATH,
+                embedding_function=OpenAIEmbeddings(),
+                collection_name="memento_db",
+            )
 
         self.sct = mss.mss()
         self.rec = utils.Recorder(
@@ -197,10 +203,11 @@ class Background:
                             window_title=frame_metadata["window_title"],
                             time=frame_metadata["time"],
                         )
-                        self.chromadb.add_texts(
-                            texts=[all_text],
-                            metadatas=md,
-                        )
+                        if self.chromadb is not None:
+                            self.chromadb.add_texts(
+                                texts=[all_text],
+                                metadatas=md,
+                            )
                         print("ADD TO DB TIME:", time.time() - add_db_start)
                     except Exception as e:
                         print("================aaaaaaa", e)
