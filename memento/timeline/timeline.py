@@ -19,8 +19,11 @@ class Timeline:
         infoObject = pygame.display.Info()
 
         # Set window_size to the current screen resolution
-        self.window_size = (infoObject.current_w, infoObject.current_h)
-        
+        self.window_size = (
+            int(infoObject.current_w / 1.05),
+            int(infoObject.current_h / 1.05),
+        )
+
         # Faster than pygame.init()
         pygame.display.init()
         pygame.font.init()
