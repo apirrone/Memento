@@ -53,24 +53,31 @@ You also need to set an environment variable :
 export TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata/
 ```
 
+If you want to chat with the timeline through a llm, you need an openai api key in your env as `OPENAI_API_KEY`.
+
 ## Usage
-### Background process
-Run in a terminal  
+### Run the background process :
+
 ```console
 $ memento-bg
 ```
 
-### Show the timeline:
+### Run the timeline :
 
 ```console
 $ memento-timeline
 ```
 
-Then use `ctrl+f` to search.
+#### Controls :
+- Scroll horizontally or vertically to navigate the timeline. 
+- `ctrl+scroll` to zoom the timeline in and out.
+- Hover the timeline to see a preview of the screenshot at that time, `click` to navigate there.
+- Press `d` for debug mode (useful for development)
+- `ctrl+f` to open search sidebar.
+- `ctrl+t` to open chat sidebar.
+- `click+drag` on a screenshot to select text, `ctrl+c` to copy it to clipboard.
 
-If you want to chat with the timeline through a llm, you need an openai api key in your env as `OPENAI_API_KEY`.
-Then use `ctrl+t` to open the chatbox.
-  
+
 ## Contributing: 
 Feel free to contribute ! 
 

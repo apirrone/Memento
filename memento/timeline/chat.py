@@ -51,11 +51,15 @@ class Chat:
         self.frames_peeks_rects = {}
         self.frame_peek_hovered_id = None
 
-        self.chromadb = Chroma(
-            persist_directory=utils.CACHE_PATH,
-            embedding_function=OpenAIEmbeddings(),
-            collection_name="memento_db",
-        )
+        if not self.key_ok:
+            self.chromadb = None
+            return
+        else:
+            self.chromadb = Chroma(
+                persist_directory=utils.CACHE_PATH,
+                embedding_function=OpenAIEmbeddings(),
+                collection_name="memento_db",
+            )
 
         self.memory = ConversationBufferMemory(
             memory_key="chat_history", return_messages=True, input_key="question"
@@ -125,7 +129,7 @@ class Chat:
                 }
 
             result = self.qa(inputs={"question": inp, "md": md})
-            
+
             try:
                 result = json.loads(result["answer"])
             except json.decoder.JSONDecodeError as e:
