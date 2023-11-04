@@ -51,11 +51,15 @@ class Chat:
         self.frames_peeks_rects = {}
         self.frame_peek_hovered_id = None
 
-        self.chromadb = Chroma(
-            persist_directory=utils.CACHE_PATH,
-            embedding_function=OpenAIEmbeddings(),
-            collection_name="memento_db",
-        )
+        if not self.key_ok:
+            self.chromadb = None
+            return
+        else:
+            self.chromadb = Chroma(
+                persist_directory=utils.CACHE_PATH,
+                embedding_function=OpenAIEmbeddings(),
+                collection_name="memento_db",
+            )
 
         self.memory = ConversationBufferMemory(
             memory_key="chat_history", return_messages=True, input_key="question"
@@ -67,7 +71,6 @@ class Chat:
         If you don't know the answer, just say that you don't know, don't try to make up an answer.
         You will format your answer in json, with the keys "answer" and "frames_ids". Always include these keys, even if you did not find anything. Just say it and return an empty list for "frames_ids".
         The value of "answer" will be the answer to the question, and the value of "frames_ids" will be a list of frame_ids from which you got the information from using the metadata.
-        Use three sentences maximum and keep the answer as concise as possible.
 
         Context: {context}
         Question: {question}
@@ -126,7 +129,7 @@ class Chat:
                 }
 
             result = self.qa(inputs={"question": inp, "md": md})
-            
+
             try:
                 result = json.loads(result["answer"])
             except json.decoder.JSONDecodeError as e:

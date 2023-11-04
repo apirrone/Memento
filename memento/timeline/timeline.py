@@ -12,7 +12,17 @@ import time
 
 class Timeline:
     def __init__(self):
-        self.window_size = utils.RESOLUTION
+        # Initialize the display module
+        pygame.display.init()
+
+        # Get display information
+        infoObject = pygame.display.Info()
+
+        # Set window_size to the current screen resolution
+        self.window_size = (
+            int(infoObject.current_w / 1.05),
+            int(infoObject.current_h / 1.05),
+        )
 
         # Faster than pygame.init()
         pygame.display.init()
@@ -41,7 +51,7 @@ class Timeline:
         self.frame_getter = FrameGetter(self.window_size)
         self.time_bar = TimeBar(self.frame_getter)
         self.search_bar = SearchBar(self.frame_getter)
-        self.region_selector = RegionSelector()
+        self.region_selector = RegionSelector(self.window_size)
         self.popup_manager = PopUpManager()
         self.chat = Chat(self.frame_getter)
 
@@ -93,7 +103,9 @@ class Timeline:
                         self.region_selector.reset()
                     elif self.search_bar.active and self.search_bar.hover(event.pos):
                         pass
-                    elif not self.chat.hover(pygame.mouse.get_pos()):
+                    elif not self.chat.active or not self.chat.hover(
+                        pygame.mouse.get_pos()
+                    ):
                         self.search_bar.deactivate()
                         self.region_selector.start(event.pos)
                         self.time_bar.hide()

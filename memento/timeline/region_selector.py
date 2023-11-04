@@ -1,14 +1,17 @@
 import pygame
 from memento.OCR import Tesseract
+from memento.utils import RESOLUTION
 import cv2
 
 
 class RegionSelector:
-    def __init__(self):
+    def __init__(self, window_size):
         self.s = None
         self.e = None
         self.ongoing = False
         self.ocr = Tesseract(resize_factor=3, conf_threshold=50)
+        self.w_factor = RESOLUTION[0] / window_size[0]
+        self.h_factor = RESOLUTION[1] / window_size[1]
 
     def start(self, mouse_pos):
         self.s = mouse_pos
@@ -62,10 +65,10 @@ class RegionSelector:
         for r in results:
             entry = {
                 "bb": {
-                    "x": r["x"] + region[0],
-                    "y": r["y"] + region[1],
-                    "w": r["w"],
-                    "h": r["h"],
+                    "x": r["x"] * self.w_factor + region[0] * self.w_factor,
+                    "y": r["y"] * self.h_factor + region[1] * self.h_factor,
+                    "w": r["w"] * self.w_factor,
+                    "h": r["h"] * self.h_factor,
                 },
                 "text": r["text"],
             }
