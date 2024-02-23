@@ -26,7 +26,7 @@ setup(
         "tesserocr==2.6.1",
         "pygame-textinput==1.0.1",
         "pyperclip==1.8.2",
-        "Pillow==10.0.1",
+        "Pillow==10.2.0",
         "chromadb==0.4.9"
     ],
     entry_points={
